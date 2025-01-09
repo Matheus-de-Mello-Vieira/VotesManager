@@ -6,11 +6,16 @@ import (
 	"fmt"
 )
 
-type PostgresqlVoteDataMapper struct {
+type VoteDataMapper struct {
 	connector PostgresqlConnector
 }
 
-func (mapper *PostgresqlVoteDataMapper) SaveOne(ctx context.Context, vote *domain.Vote) error {
+func NewVoteDataMapper(connector PostgresqlConnector) VoteDataMapper {
+	return VoteDataMapper{connector}
+}
+
+
+func (mapper VoteDataMapper) SaveOne(ctx context.Context, vote *domain.Vote) error {
 	dbpool, err := mapper.connector.openConnection(ctx)
 	if err != nil {
 		return err

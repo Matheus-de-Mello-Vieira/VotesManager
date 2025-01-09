@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func VoteCastingHandler(responseWriter http.ResponseWriter, request *http.Request) {
+func (controller *FrontendController) VoteCastingHandler(responseWriter http.ResponseWriter, request *http.Request) {
 	// Only allow POST requests
 	if request.Method != http.MethodPost {
 		http.Error(responseWriter, "Method Not Allowed", http.StatusMethodNotAllowed)
@@ -42,14 +42,7 @@ func VoteCastingHandler(responseWriter http.ResponseWriter, request *http.Reques
 		return
 	}
 
-	// Find the participant
-	var participant *domain.Participant
-	for _, p := range participants {
-		if p.ParticipantID == id {
-			participant = &p
-			break
-		}
-	}
+	participant, _ := controller.participantRepository.FindByID(controller.context, id)
 
 	if participant == nil {
 		http.Error(responseWriter, "Participant not found", http.StatusNotFound)

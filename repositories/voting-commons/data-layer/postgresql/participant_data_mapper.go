@@ -6,11 +6,15 @@ import (
 	"fmt"
 )
 
-type ParticipantRepository struct {
+type ParticipantDataMapper struct {
 	connector PostgresqlConnector
 }
 
-func (mapper *ParticipantRepository) findAll(ctx context.Context) ([]domain.Participant, error) {
+func NewParticipantDataMapper(connector PostgresqlConnector) ParticipantDataMapper {
+	return ParticipantDataMapper{connector}
+}
+
+func (mapper ParticipantDataMapper) FindAll(ctx context.Context) ([]domain.Participant, error) {
 	dbpool, err := mapper.connector.openConnection(ctx)
 	if err != nil {
 		return nil, err
@@ -36,6 +40,24 @@ func (mapper *ParticipantRepository) findAll(ctx context.Context) ([]domain.Part
 	}
 
 	return participants, nil
+}
+
+func (mapper ParticipantDataMapper) FindByID(ctx context.Context, id int) (*domain.Participant, error) {
+	dbpool, err := mapper.connector.openConnection(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer dbpool.Close()
+
+	query := "SELECT participant_id, participant_name FROM participants WHERE participant_id = $1"
+
+	var p domain.Participant
+	err1 := dbpool.QueryRow(ctx, query, id).Scan(&p.ParticipantID, &p.Name)
+	if err1 != nil {
+		return nil, fmt.Errorf("failed to get participant: %w", err)
+	}
+
+	return &p, nil
 }
 
 // func GetRoughTotals(ctx context.Context) (map[Participant]float64, error) {

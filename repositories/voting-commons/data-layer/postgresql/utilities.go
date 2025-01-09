@@ -11,6 +11,12 @@ type PostgresqlConnector struct {
 	connectionString string
 }
 
+func NewPostgresqlConnector(connectionString string) PostgresqlConnector {
+	return PostgresqlConnector{
+		connectionString: connectionString,
+	}
+}
+
 func (connector *PostgresqlConnector) openConnection(ctx context.Context) (*pgxpool.Pool, error) {
 	dbpool, err := pgxpool.New(ctx, connector.connectionString)
 

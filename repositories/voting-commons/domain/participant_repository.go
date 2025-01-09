@@ -5,7 +5,8 @@ import (
 )
 
 type ParticipantRepository interface {
-	findAll(ctx context.Context) ([]Participant, error)
+	FindAll(ctx context.Context) ([]Participant, error)
+	FindByID(ctx context.Context, id int) (*Participant, error)
 	// GetRoughTotals(ctx context.Context) (map[Participant]float64, error)
 	// GetHourlyTotals(ctx context.Context)
 }
