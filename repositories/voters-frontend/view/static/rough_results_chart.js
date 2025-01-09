@@ -1,20 +1,18 @@
-// results.js: Creates a bar chart using Chart.js
-
-// 1. Read the JSON data from the hidden <script> tag
 const dataEl = document.getElementById("chartData");
 const jsonData = JSON.parse(dataEl.textContent);
 
-// Extract labels and votes
 const labels = jsonData.labels;
 const votes = jsonData.votes;
 
-// 2. Prepare the Chart.js data object
+const total = votes.reduce((a, b) => a + b, 0)
+const percentages = votes.map((a) => a / total)
+
 const data = {
   labels: labels,
   datasets: [
     {
-      label: "Número de Votos",
-      data: votes,
+      label: "Porcentagem dos Votos",
+      data: percentages,
       backgroundColor: ["rgba(54, 162, 235, 0.2)"],
       borderColor: ["rgba(54, 162, 235, 1)"],
       borderWidth: 1,
@@ -22,7 +20,6 @@ const data = {
   ],
 };
 
-// 3. Chart config
 const config = {
   type: "bar",
   data: data,
@@ -30,6 +27,11 @@ const config = {
     scales: {
       y: {
         beginAtZero: true,
+        ticks: {
+          format: {
+            style: "percent",
+          },
+        },
       },
     },
   },
