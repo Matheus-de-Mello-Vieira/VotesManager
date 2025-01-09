@@ -124,3 +124,8 @@ Por questão simplicidade, eu vou manter tudo no mesmo repositório, mas seria i
 * **votes-register**: responsável por consumir a fila do Kafka e salvar os dados agrupados no banco de dados
 * **votes-aggregator**: responsável por periodicamente pegar os dados registrados pelo **votes-register** e salvar a soma atualizada
 * **prodution-frontend**: responsável pela interface dos telespectadores
+
+## Coisas que implementaria se tivesse tempo
+
+* No sistema existe uma relação no banco de dados agrupados por tempo, seria interessante começar agrupar os agrupamentos mais antigos, de forma a economizar espaço no disco. Poderia ser algo como: dados com mais de 2 semanas se agrupam por hora e com mais de 1 mês se agrupa por dia.
+* Implementar a entidade referente aos participantes da votação
