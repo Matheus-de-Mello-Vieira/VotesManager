@@ -117,9 +117,11 @@ Além disso, eu precisaria de:
 
 Apesar de ser um sistema relativamente simples, que por se só não justificaria uma arquitetura sofisticada como é o caso da arquitetura limpa, eu vou usar ela (parcialmente) como forma de demostração das minhas habilidades.
 
-Por questão simplicidade, eu vou manter tudo no mesmo repositório, mas seria interessante imaginar isso como sendo um projeto grande, distribuído em 5 repositórios:
+Por questão simplicidade, eu vou manter tudo no mesmo repositório, mas seria interessante imaginar isso como sendo um projeto grande, distribuído em nesses repositórios:
 
-* **voting-domain**: a camada de domínio compartilhado entre todos os serviços, imagine isso enquanto uma biblioteca versionadada via CI/CD
+* **voting-commons**: códigos comuns entres os serviços, imagine isso enquanto uma biblioteca versionadada via CI/CD
+  * vai conter os datamappers para comunicar com o Kafka (pois é usado em 2 componentes) e os datamappers para comunicar com o Postman (pois é usado por 3 componentes).
+
 * **voters-frontend**: responsável pela interface web dos telespectadores
 * **votes-register**: responsável por consumir a fila do Kafka e salvar os dados agrupados no banco de dados
 * **votes-aggregator**: responsável por periodicamente pegar os dados registrados pelo **votes-register** e salvar a soma atualizada
