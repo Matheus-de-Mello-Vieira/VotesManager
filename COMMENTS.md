@@ -132,3 +132,6 @@ Por questão simplicidade, eu vou manter tudo no mesmo repositório, mas seria i
 * No sistema existe uma relação no banco de dados agrupados por tempo, seria interessante começar agrupar os agrupamentos mais antigos, de forma a economizar espaço no disco. Poderia ser algo como: dados com mais de 2 semanas se agrupam por hora e com mais de 1 mês se agrupa por dia.
 * Separa os repositórios e os módulos
   * incluir o `voting-commons` em algum repositório de artefatos, de forma que cada componente pode puxar uma versão diferente dele.
+* imagens dos participantes
+* criação de um pipeline CI/CD
+  * SonarQube

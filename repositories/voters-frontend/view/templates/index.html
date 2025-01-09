@@ -1,16 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Items</title>
+    <title>Paredão BBB</title>
+    <link rel="stylesheet" type="text/css" href="/static/styles.css">
 </head>
 <body>
-    <h1>Items</h1>
-    <ul>
-        {{range .}}
-        <li>{{.}}</li>
-        {{else}}
-        <li>No items found</li>
-        {{end}}
-    </ul>
+    <div class="container">
+        <h1>Clique para votar</h1>
+        <div>
+            {{range .}}
+            <form action="/vote" method="POST">
+                <input type="hidden" name="id" value="{{.ParticipantID}}">
+                <button type="submit" class="participant-button">
+                    {{.Name}}
+                </button>
+            </form>
+            {{else}}
+            <p class="no-participants">No participants found</p>
+            {{end}}
+        </div>
+    </div>
 </body>
 </html>
