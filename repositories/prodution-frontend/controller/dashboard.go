@@ -4,30 +4,51 @@ import (
 	"bbb-voting/voting-commons/domain"
 	"context"
 	"encoding/json"
-	"net/http"
+	"html/template"
 	"log"
+	"net/http"
 )
 
 type FrontendController struct {
 	participantRepository domain.ParticipantRepository
-	context context.Context
+	context               context.Context
 }
 
 func NewFrontendController(participantRepository domain.ParticipantRepository, context context.Context) FrontendController {
 	return FrontendController{
 		participantRepository: participantRepository,
-		context: context,
+		context:               context,
 	}
 }
 
+const templatesPath = "prodution-frontend/view/templates/"
+
 type ThoroughTotalsResponseModel struct {
-	GeneralTotal       int 
+	GeneralTotal       int
 	TotalByHour        []domain.TotalByHour
 	TotalByParticipant map[string]int
 }
 
+func (controller *FrontendController) GetPage(responseWriter http.ResponseWriter, request *http.Request) {
+	tmpl, err := template.ParseFiles(templatesPath + "dashboard.html")
+	if err != nil {
+		handleInternalServerError(responseWriter, err)
+		return
+	}
 
-func (controller *FrontendController) GetThoroughTotals (responseWriter http.ResponseWriter, request *http.Request) {
+	err = tmpl.Execute(responseWriter, nil)
+	if err != nil {
+		handleInternalServerError(responseWriter, err)
+		return
+	}
+}
+
+func handleInternalServerError(responseWriter http.ResponseWriter, err error) {
+	http.Error(responseWriter, "Internal Server Error", http.StatusInternalServerError)
+	log.Fatal(err)
+}
+
+func (controller *FrontendController) GetThoroughTotals(responseWriter http.ResponseWriter, request *http.Request) {
 	// Only allow GET requests
 	if request.Method != http.MethodGet {
 		http.Error(responseWriter, "Method Not Allowed", http.StatusMethodNotAllowed)
@@ -41,8 +62,8 @@ func (controller *FrontendController) GetThoroughTotals (responseWriter http.Res
 	}
 
 	responseModel := ThoroughTotalsResponseModel{
-		GeneralTotal: content.GeneralTotal,
-		TotalByHour: content.TotalByHour,
+		GeneralTotal:       content.GeneralTotal,
+		TotalByHour:        content.TotalByHour,
 		TotalByParticipant: map[string]int{},
 	}
 

@@ -22,8 +22,9 @@ func main() {
 		),
 		context,
 	)
-	http.HandleFunc("/votes/detailed", frontendController.GetThoroughTotals)
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("voters-frontend/view/static"))))
+	http.HandleFunc("/", frontendController.GetPage)
+	http.HandleFunc("/votes/thorough", frontendController.GetThoroughTotals)
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("prodution-frontend/view/static"))))
 
 	log.Println("Server is running on http://localhost:8081")
 	if err := http.ListenAndServe(":8081", nil); err != nil {

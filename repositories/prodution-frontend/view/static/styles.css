@@ -1,0 +1,57 @@
+/* General body styling */
+body {
+    font-family: 'Arial', sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f8f9fa; /* Light gray background */
+    color: #343a40; /* Dark gray text */
+}
+
+/* Container styling */
+.container {
+    max-width: 600px;
+    margin: 50px auto; /* Center content vertically and horizontally */
+    background-color: #ffffff; /* White background for the content box */
+    padding: 20px;
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+    text-align: center;
+}
+
+/* Header styling */
+h1 {
+    margin-bottom: 20px;
+    font-size: 28px;
+    color: #007BFF; /* Primary blue color */
+}
+
+/* Button styling */
+.participant-button {
+    display: block;
+    width: 100%; /* Full width */
+    max-width: 300px; /* Maximum button width */
+    margin: 10px auto; /* Center the button horizontally */
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    text-align: center;
+    cursor: pointer;
+    background-color: #007BFF; /* Button color */
+    color: white;
+    border: none;
+    border-radius: 5px; /* Rounded corners */
+    transition: background-color 0.3s ease, transform 0.2s ease; /* Add transitions */
+}
+
+/* Button hover effect */
+.participant-button:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+    transform: translateY(-3px); /* Slight lift effect */
+}
+
+/* No participants message */
+.no-participants {
+    margin-top: 20px;
+    font-size: 18px;
+    color: #6c757d; /* Muted text color */
+}
