@@ -51,6 +51,25 @@ func (controller *FrontendController) VoteCastingHandler(responseWriter http.Res
 	controller.loadRoughTotalPage(responseWriter)
 }
 
+type RoughTotalPresenter struct {
+	Labels []string
+	Votes  []int
+}
+
+func loadRoughTotalPresenter(totalsMap map[domain.Participant]int) RoughTotalPresenter {
+	result := RoughTotalPresenter{
+		Labels: []string{},
+		Votes:  []int{},
+	}
+
+	for participant, vote := range totalsMap {
+		result.Labels = append(result.Labels, participant.Name)
+		result.Votes = append(result.Votes, vote)
+	}
+
+	return result
+}
+
 func (controller *FrontendController) loadRoughTotalPage(responseWriter http.ResponseWriter) {
 	tmpl, err := template.ParseFiles(templatesPath + "rough_results.html")
 	if err != nil {
@@ -64,18 +83,7 @@ func (controller *FrontendController) loadRoughTotalPage(responseWriter http.Res
 		return
 	}
 
-	data := struct {
-		Labels []string
-		Votes  []int
-	}{
-		Labels: []string{},
-		Votes:  []int{},
-	}
-
-	for participant, vote := range totalsMap {
-		data.Labels = append(data.Labels, participant.Name)
-		data.Votes = append(data.Votes, vote)
-	}
+	data := loadRoughTotalPresenter(totalsMap)
 
 	err = tmpl.Execute(responseWriter, data)
 	if err != nil {
