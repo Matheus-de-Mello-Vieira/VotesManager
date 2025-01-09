@@ -6,6 +6,6 @@ import (
 
 type Vote struct {
 	VoteID      int
-	Participant Participant
+	Participant Participant 
 	Timestamp   time.Time
 }

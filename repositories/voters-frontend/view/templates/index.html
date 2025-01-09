@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="pt-BR" xml:lang="en">
 <head>
     <title>Paredão BBB</title>
     <link rel="stylesheet" type="text/css" href="/static/styles.css">
@@ -9,7 +9,7 @@
         <h1>Clique para votar</h1>
         <div>
             {{range .}}
-            <form action="/vote" method="POST">
+            <form action="/votes" method="POST">
                 <input type="hidden" name="id" value="{{.ParticipantID}}">
                 <button type="submit" class="participant-button">
                     {{.Name}}

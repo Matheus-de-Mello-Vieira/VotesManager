@@ -3,61 +3,91 @@ package controller
 import (
 	"bbb-voting/voting-commons/domain"
 	"html/template"
+	"log"
 	"net/http"
 	"strconv"
+	"time"
 )
 
+func VoteCastingHandler(responseWriter http.ResponseWriter, request *http.Request) {
+	// Only allow POST requests
+	if request.Method != http.MethodPost {
+		http.Error(responseWriter, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
 
-func VoteCastingHandler(w http.ResponseWriter, r *http.Request) {
-    // Only allow POST requests
-    if r.Method != http.MethodPost {
-        http.Error(w, "Method Not Allowed", http.StatusMethodNotAllowed)
-        return
-    }
+	// Parse form data from POST request
+	if err := request.ParseForm(); err != nil {
+		http.Error(responseWriter, "Unable to parse form", http.StatusBadRequest)
+		log.Fatal(err)
+		return
+	}
 
-    // Parse form data from POST request
-    if err := r.ParseForm(); err != nil {
-        http.Error(w, "Unable to parse form", http.StatusBadRequest)
-        return
-    }
+	if !verifyRecaptcha() {
+		http.Error(responseWriter, "CAPTCHA verification failed. Please try again.", http.StatusForbidden)
+		return
+	}
 
-    // Get the participant ID from the form
-    idStr := r.FormValue("id")
-    if idStr == "" {
-        http.Error(w, "Missing participant ID", http.StatusBadRequest)
-        return
-    }
+	// Get the participant ID from the form
+	idStr := request.FormValue("id")
+	if idStr == "" {
+		http.Error(responseWriter, "Missing participant ID", http.StatusBadRequest)
+		return
+	}
 
-    // Convert ID to integer
-    id, err := strconv.Atoi(idStr)
-    if err != nil {
-        http.Error(w, "Invalid participant ID", http.StatusBadRequest)
-        return
-    }
+	// Convert ID to integer
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(responseWriter, "Invalid participant ID", http.StatusBadRequest)
+		return
+	}
 
-    // Find the participant
-    var participant *domain.Participant
-    for _, p := range participants {
-        if p.ParticipantID == id {
-            participant = &p
-            break
-        }
-    }
+	// Find the participant
+	var participant *domain.Participant
+	for _, p := range participants {
+		if p.ParticipantID == id {
+			participant = &p
+			break
+		}
+	}
 
-    if participant == nil {
-        http.Error(w, "Participant not found", http.StatusNotFound)
-        return
-    }
+	if participant == nil {
+		http.Error(responseWriter, "Participant not found", http.StatusNotFound)
+		return
+	}
 
-    // Load and execute template for single participant
-    tmpl, err := template.ParseFiles("templates/item.html")
-    if err != nil {
-        http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-        return
-    }
+	vote := domain.Vote{Participant: *participant, Timestamp: time.Now()}
 
-    err = tmpl.Execute(w, participant)
-    if err != nil {
-        http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-    }
+	log.Println("voted:", vote)
+
+	loadRoughTotalPage(responseWriter)
+}
+
+func verifyRecaptcha() bool {
+	return true
+}
+
+type RoughTotals struct {
+	Labels []string
+	Votes  []int
+}
+
+func loadRoughTotalPage(responseWriter http.ResponseWriter) {
+	tmpl, err := template.ParseFiles(templatesPath + "rough_results.html")
+	if err != nil {
+		http.Error(responseWriter, "Internal Server Error", http.StatusInternalServerError)
+		log.Fatalln(err)
+		return
+	}
+
+	data := RoughTotals{
+		Labels: []string{"a", "b", "c"},
+		Votes:  []int{23, 44, 2},
+	}
+
+	err = tmpl.Execute(responseWriter, data)
+	if err != nil {
+		http.Error(responseWriter, "Internal Server Error", http.StatusInternalServerError)
+		log.Fatalln(responseWriter)
+	}
 }

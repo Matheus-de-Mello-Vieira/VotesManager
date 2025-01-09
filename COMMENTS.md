@@ -135,3 +135,4 @@ Por questão simplicidade, eu vou manter tudo no mesmo repositório, mas seria i
 * imagens dos participantes
 * criação de um pipeline CI/CD
   * SonarQube
+* implementar o recaptcha

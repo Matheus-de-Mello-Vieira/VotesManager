@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="pt-BR" xml:lang="en">
+<head>
+    <title>Paredão BBB - Resultados</title>
+    <link rel="stylesheet" type="text/css" href="/static/styles.css">
+    <!-- Load Chart.js from a CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Resultados da Votação</h1>
+        <p>Clique no gráfico para ver mais detalhes.</p>
+
+        <!-- Canvas element where the bar chart will be rendered -->
+        <canvas id="myChart" width="400" height="200"></canvas>
+
+        <!-- Link or button to go back if desired -->
+        <p><a href="/">Voltar</a></p>
+    </div>
+
+    <script>
+        // Data passed from Go code: .Labels is slice of participant names, .Votes is slice of counts
+        const labels = {{ .Labels }};
+        const votes = {{ .Votes }};
+
+        // Build Chart.js data object
+        const data = {
+            labels: labels,
+            datasets: [{
+                label: 'Número de Votos',
+                data: votes,
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(54, 162, 235, 1)'
+                ],
+                borderWidth: 1
+            }]
+        };
+
+        // Create bar chart
+        const config = {
+            type: 'bar',
+            data: data,
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        };
+
+        // Render the chart
+        const myChart = new Chart(
+            document.getElementById('myChart'),
+            config
+        );
+    </script>
+</body>
+</html>
