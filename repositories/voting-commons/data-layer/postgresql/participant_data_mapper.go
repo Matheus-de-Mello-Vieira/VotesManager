@@ -5,6 +5,8 @@ import (
 	"context"
 	"fmt"
 	"strings"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type ParticipantDataMapper struct {
@@ -70,6 +72,50 @@ func (mapper ParticipantDataMapper) GetRoughTotals(ctx context.Context) (map[dom
 	}
 	defer dbpool.Close()
 
+	return getVotesByParticipant(dbpool, ctx)
+}
+
+func (mapper ParticipantDataMapper) GetThoroughTotals(ctx context.Context) (*domain.ThoroughTotals, error) {
+	dbpool, err := mapper.connector.openConnection(ctx)
+	if err != nil {
+		return nil, err
+	}
+	defer dbpool.Close()
+
+	generalTotal, err1 := getGeneralTotal(dbpool, ctx)
+	if err1 != nil {
+		return nil, err1
+	}
+
+	totalByParticipant, err2 := getVotesByParticipant(dbpool, ctx)
+	if err2 != nil {
+		return nil, err2
+	}
+
+	totalByHour, err3 := getVotesByHour(dbpool, ctx)
+	if err3 != nil {
+		return nil, err3
+	}
+
+	result := domain.ThoroughTotals{GeneralTotal: *generalTotal, TotalByHour: totalByHour, TotalByParticipant: totalByParticipant}
+
+	return &result, nil
+}
+
+func getGeneralTotal(dbpool *pgxpool.Pool, ctx context.Context) (*int, error) {
+	query := "select count(*) as votes from votes"
+
+	var result int
+	err := dbpool.QueryRow(ctx, query).Scan(&result)
+	if err != nil {
+		result = -1
+		return &result, fmt.Errorf("failed to get genetal total: %w", err)
+	}
+
+	return &result, nil
+}
+
+func getVotesByParticipant(dbpool *pgxpool.Pool, ctx context.Context) (map[domain.Participant]int, error) {
 	query := `select
 			P.participant_id,
 			P.participant_name,
@@ -109,6 +155,33 @@ func (mapper ParticipantDataMapper) GetRoughTotals(ctx context.Context) (map[dom
 	return result, nil
 }
 
-// func GetHourlyTotals(ctx context.Context) {
+func getVotesByHour(dbpool *pgxpool.Pool, ctx context.Context) ([]domain.TotalByHour, error) {
+	query := `select
+			date_part('hour', timestamp) :: integer,
+			count(*) as votes 
+		from
+			votes
+		group by
+			DATE_PART('hour', timestamp) :: integer
+		order by 
+			DATE_PART('hour', timestamp) :: integer`
 
-// }
+	rows, err := dbpool.Query(ctx, query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to query votes per hour: %w", err)
+	}
+	defer rows.Close()
+
+	var result []domain.TotalByHour
+	for rows.Next() {
+		var totalByHour domain.TotalByHour
+		err := rows.Scan(&totalByHour.Hour, &totalByHour.Total)
+
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan participant: %w", err)
+		}
+		result = append(result, totalByHour)
+	}
+
+	return result, nil
+}
