@@ -68,8 +68,7 @@ type RoughTotals struct {
 func loadRoughTotalPage(responseWriter http.ResponseWriter) {
 	tmpl, err := template.ParseFiles(templatesPath + "rough_results.html")
 	if err != nil {
-		http.Error(responseWriter, "Internal Server Error", http.StatusInternalServerError)
-		log.Fatalln(err)
+		handleInternalServerError(responseWriter, err)
 		return
 	}
 
@@ -80,7 +79,6 @@ func loadRoughTotalPage(responseWriter http.ResponseWriter) {
 
 	err = tmpl.Execute(responseWriter, data)
 	if err != nil {
-		http.Error(responseWriter, "Internal Server Error", http.StatusInternalServerError)
-		log.Fatalln(responseWriter)
+		handleInternalServerError(responseWriter, err)
 	}
 }

@@ -2,7 +2,6 @@ package controller
 
 import (
 	"html/template"
-	"log"
 	"net/http"
 	"bbb-voting/voting-commons/domain"
 	"context"
@@ -24,25 +23,23 @@ func NewFrontendController(participantRepository domain.ParticipantRepository, v
 	}
 }
 
-func (controller *FrontendController) IndexHandler(w http.ResponseWriter, r *http.Request) {
+func (controller *FrontendController) IndexHandler(responseWriter http.ResponseWriter, request *http.Request) {
 	tmpl, err := template.ParseFiles(templatesPath + "index.html")
 	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		log.Fatal(err)
+		handleInternalServerError(responseWriter, err)
 		return
 	}
 
 	// Render the template with the items data
 	participants, err1 := controller.participantRepository.FindAll(controller.context)
 	if err1 != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		log.Fatal(err1)
+		handleInternalServerError(responseWriter, err1)
 		return
 	}
 
-	err = tmpl.Execute(w, participants)
+	err = tmpl.Execute(responseWriter, participants)
 	if err != nil {
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		log.Fatal(err)
+		handleInternalServerError(responseWriter, err)
+		return
 	}
 }
