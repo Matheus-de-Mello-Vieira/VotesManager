@@ -51,30 +51,39 @@ func (controller *FrontendController) VoteCastingHandler(responseWriter http.Res
 
 	vote := domain.Vote{Participant: *participant, Timestamp: time.Now()}
 
-	log.Println("voted:", vote)
+	controller.voteRepository.SaveOne(controller.context, &vote)
 
-	loadRoughTotalPage(responseWriter)
+	controller.loadRoughTotalPage(responseWriter)
 }
 
 func verifyRecaptcha() bool {
 	return true
 }
 
-type RoughTotals struct {
-	Labels []string
-	Votes  []int
-}
-
-func loadRoughTotalPage(responseWriter http.ResponseWriter) {
+func (controller *FrontendController) loadRoughTotalPage(responseWriter http.ResponseWriter) {
 	tmpl, err := template.ParseFiles(templatesPath + "rough_results.html")
 	if err != nil {
 		handleInternalServerError(responseWriter, err)
 		return
 	}
 
-	data := RoughTotals{
-		Labels: []string{"a", "b", "c"},
-		Votes:  []int{23, 44, 2},
+	totalsMap, err1 := controller.participantRepository.GetRoughTotals(controller.context)
+	if err1 != nil {
+		handleInternalServerError(responseWriter, err)
+		return
+	}
+
+	data := struct {
+		Labels []string
+		Votes  []int
+	}{
+		Labels: []string{},
+		Votes:  []int{},
+	}
+
+	for participant, vote := range totalsMap {
+		data.Labels = append(data.Labels, participant.Name)
+		data.Votes = append(data.Votes, vote)
 	}
 
 	err = tmpl.Execute(responseWriter, data)
