@@ -8,17 +8,22 @@
     <div class="container">
         <h1>Clique para votar</h1>
         <div>
+            <form action="/votes" method="POST" onsubmit="return checkCaptchaOnSubmit()">
             {{range .}}
-            <form action="/votes" method="POST">
                 <input type="hidden" name="id" value="{{.ParticipantID}}">
                 <button type="submit" class="participant-button">
                     {{.Name}}
                 </button>
+                {{else}}
+                <p class="no-participants">No participants found</p>
+                {{end}}
+                <input type="checkbox" id="captcha" name="captcha" /> <label for="captcha">Eu não sou robô</label>
             </form>
-            {{else}}
-            <p class="no-participants">No participants found</p>
-            {{end}}
         </div>
     </div>
+    <script
+      src="/static/check_captcha.js"
+      type="text/javascript"
+    ></script>
 </body>
 </html>

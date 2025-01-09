@@ -23,11 +23,6 @@ func (controller *FrontendController) VoteCastingHandler(responseWriter http.Res
 		return
 	}
 
-	if !verifyRecaptcha() {
-		http.Error(responseWriter, "CAPTCHA verification failed. Please try again.", http.StatusForbidden)
-		return
-	}
-
 	// Get the participant ID from the form
 	idStr := request.FormValue("id")
 	if idStr == "" {
@@ -54,10 +49,6 @@ func (controller *FrontendController) VoteCastingHandler(responseWriter http.Res
 	controller.voteRepository.SaveOne(controller.context, &vote)
 
 	controller.loadRoughTotalPage(responseWriter)
-}
-
-func verifyRecaptcha() bool {
-	return true
 }
 
 func (controller *FrontendController) loadRoughTotalPage(responseWriter http.ResponseWriter) {

@@ -3,22 +3,15 @@
   <head>
     <title>Paredão BBB - Resultados</title>
     <link rel="stylesheet" type="text/css" href="/static/styles.css" />
-    <!-- Load Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   </head>
   <body>
     <div class="container">
-      <h1>Resultados da Votação</h1>
-      <p>Clique no gráfico para ver mais detalhes.</p>
+      <h1>Voto registrado com sucesso! Acompanhe aqui os resultados:</h1>
+      <p>Esses são resultados parciais até o momento</p>
 
-      <!-- Our canvas element where we render the chart -->
       <canvas id="resultChart" width="400" height="200"></canvas>
 
-      <!-- 
-          Hidden JSON data script:
-          We'll embed the chart data (labels, votes) here,
-          then parse it in results.js 
-        -->
       <script id="chartData" type="application/json">
         {
           "labels": {{ .Labels }},
@@ -29,7 +22,9 @@
       <p><a href="/">Voltar</a></p>
     </div>
 
-    <!-- Load our custom JS for the results page -->
-    <script src="/static/rough_results_chart.js" type="text/javascript"></script>
+    <script
+      src="/static/rough_results_chart.js"
+      type="text/javascript"
+    ></script>
   </body>
 </html>

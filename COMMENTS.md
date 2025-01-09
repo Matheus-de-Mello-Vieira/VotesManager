@@ -136,3 +136,6 @@ Por questão simplicidade, eu vou manter tudo no mesmo repositório, mas seria i
 * criação de um pipeline CI/CD
   * SonarQube
 * implementar o recaptcha
+* Eu tentei usar o template para gerar os HTMLs, o problema é que isso levou a um código com baixa testabilidade, pois todos os dados ficam dentro do HTML.
+  * ao invés disso, vou pegaria um arquivo HTML estático e vou preencher os elementos dele com javascript, chamando as rotas do meu sistema.
+
