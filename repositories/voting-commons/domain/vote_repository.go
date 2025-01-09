@@ -1,6 +1,10 @@
 package domain
 
+import (
+	"context"
+)
+
 type VoteRepository interface {
-	SaveOne(vote *Vote) error
-	SaveMany(votes []Vote) error
+	SaveOne(ctx context.Context, vote *Vote) error
+	SaveMany(ctx context.Context, votes []Vote) error
 }

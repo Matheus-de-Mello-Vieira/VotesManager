@@ -1,4 +1,4 @@
-# Paredão BBB
+# BBB Voting
 
 ## Usage
 ```bash
