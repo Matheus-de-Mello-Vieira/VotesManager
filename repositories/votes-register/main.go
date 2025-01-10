@@ -12,7 +12,7 @@ import (
 )
 
 func main() {
-	consumer, err := kafkaeventconsumer.NewKafkaVoteConsumer([]string{os.Getenv("KAFKA_URI")}, "events", "events-register")
+	consumer, err := kafkaeventconsumer.NewKafkaVoteConsumer([]string{os.Getenv("KAFKA_URI")}, "votes", "events-register")
 	if err != nil {
 		log.Fatalf("failed to create Kafka consumer: %v", err)
 	}

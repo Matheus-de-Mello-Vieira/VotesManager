@@ -29,7 +29,7 @@ func main() {
 			postgresqlConnector,
 		),
 		kafkadatamapper.NewVoteDataMapper(
-			[]string{os.Getenv("KAFKA_URI")}, "events", 30,
+			[]string{os.Getenv("KAFKA_URI")}, "votes", 30,
 		),
 		context, templates,
 	)
