@@ -8,3 +8,4 @@ import (
 type VoteConsumer interface {
 	Consume(ctx context.Context) ([]domain.Vote, error)
 }
+

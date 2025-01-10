@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -35,6 +36,43 @@ func (mapper VoteDataMapper) SaveOne(ctx context.Context, vote *domain.Vote) err
 	}
 
 	return nil
+}
+
+func (mapper VoteDataMapper) SaveMany(ctx context.Context, votes []domain.Vote) error {
+	dbpool, err := mapper.connector.openConnection(ctx)
+	if err != nil {
+		return err
+	}
+	defer dbpool.Close()
+	
+	// Create a new batch
+    batch := &pgx.Batch{}
+
+    // Queue an INSERT for each vote
+    for _, v := range votes {
+        batch.Queue(
+            `INSERT INTO votes (participant_id, timestamp) 
+             VALUES ($1, $2) 
+             RETURNING vote_id`,
+            v.Participant.ParticipantID,
+            v.Timestamp,
+        )
+    }
+
+    // Send the batch to the database
+    br := dbpool.SendBatch(ctx, batch)
+    defer br.Close()
+
+    // Collect the generated vote_ids for each inserted record
+    for i := range votes {
+        err := br.QueryRow().Scan(&votes[i].VoteID)
+        if err != nil {
+            return fmt.Errorf("failed to insert vote at index %d: %w", i, err)
+        }
+    }
+
+    return nil
+
 }
 
 func getGeneralTotal(dbpool *pgxpool.Pool, ctx context.Context) (*int, error) {

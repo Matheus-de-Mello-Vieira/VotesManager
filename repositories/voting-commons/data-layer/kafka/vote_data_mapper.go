@@ -5,8 +5,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/IBM/sarama"
 	"log"
+
+	"github.com/IBM/sarama"
 )
 
 type VoteDataMapper struct {
@@ -61,4 +62,8 @@ func (mapper VoteDataMapper) TruncateUnix(vote *domain.Vote) int64 {
 	result := vote.Timestamp.Unix() / int64(mapper.aggregateSizeInSeconds)
 
 	return result
+}
+
+func (mapper VoteDataMapper) SaveMany(ctx context.Context, votes []domain.Vote) error {
+	return fmt.Errorf("not implemented yet")
 }

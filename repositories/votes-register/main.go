@@ -2,6 +2,7 @@ package main
 
 import (
 	kafkaeventconsumer "bbb-voting/votes-register/data_layer"
+	postgresqldatamapper "bbb-voting/voting-commons/data-layer/postgresql"
 	"bbb-voting/voting-commons/domain"
 	"context"
 	"fmt"
@@ -16,8 +17,13 @@ func main() {
 		log.Fatalf("failed to create Kafka consumer: %v", err)
 	}
 
-	context := context.Background()
-	votes, error := consumer.Consume(context)
+	ctx := context.Background()
+	votes, error := consumer.Consume(ctx)
+
+	postgresqlConnector := postgresqldatamapper.NewPostgresqlConnector(os.Getenv("POSTGRESQL_URI"))
+	voteDataMapper := postgresqldatamapper.NewVoteDataMapper(
+		postgresqlConnector,
+	)
 
 	if error != nil {
 		log.Fatalf("failed to consume topic: %v", err)
@@ -26,7 +32,8 @@ func main() {
 	timeout, _ := time.ParseDuration("30s")
 	for {
 		votesBulk := consumeWithTimeout(votes, 1000, timeout)
-		fmt.Printf("Received event: %+v\n", votesBulk)
+		fmt.Printf("Received %d votes", len(votesBulk))
+		voteDataMapper.SaveMany(ctx, votesBulk)
 	}
 }
 
