@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"html/template"
+	"io/fs"
 	"log"
 	"net/http"
 )
@@ -12,16 +13,16 @@ import (
 type FrontendController struct {
 	participantRepository domain.ParticipantRepository
 	context               context.Context
+	embedTemplates        fs.FS
 }
 
-func NewFrontendController(participantRepository domain.ParticipantRepository, context context.Context) FrontendController {
+func NewFrontendController(participantRepository domain.ParticipantRepository, context context.Context, embedTemplates fs.FS) FrontendController {
 	return FrontendController{
 		participantRepository: participantRepository,
 		context:               context,
+		embedTemplates:        embedTemplates,
 	}
 }
-
-const templatesPath = "prodution-frontend/view/templates/"
 
 type ThoroughTotalsResponseModel struct {
 	GeneralTotal       int
@@ -30,7 +31,8 @@ type ThoroughTotalsResponseModel struct {
 }
 
 func (controller *FrontendController) GetPage(responseWriter http.ResponseWriter, request *http.Request) {
-	tmpl, err := template.ParseFiles(templatesPath + "dashboard.html")
+	tmpl, err := template.ParseFS(controller.embedTemplates, "dashboard.html")
+
 	if err != nil {
 		handleInternalServerError(responseWriter, err)
 		return

@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"os"
 
 	"net/http/httptest"
 
@@ -19,7 +20,8 @@ var _ = Describe("DashBoardController", func() {
 	)
 	BeforeEach(func() {
 		ctx = context.Background()
-		controller = NewFrontendController(mocksdatamappers.MockedParticipantDataMapper{}, ctx)
+
+		controller = NewFrontendController(mocksdatamappers.MockedParticipantDataMapper{}, ctx, os.DirFS("../view/templates/*"))
 	})
 
 	Describe("GetThoroughTotals", func() {

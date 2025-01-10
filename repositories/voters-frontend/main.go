@@ -7,15 +7,11 @@ import (
 	"log"
 	"net/http"
 	"os"
-
-	"github.com/joho/godotenv"
 )
 
 func main() {
-	godotenv.Load(".env")
-
 	context := context.Background()
-	postgresqlConnector := postgresqldatamapper.NewPostgresqlConnector(os.Getenv("postgresql_uri"))
+	postgresqlConnector := postgresqldatamapper.NewPostgresqlConnector(os.Getenv("POSTGRESQL_URI"))
 	frontendController := controller.NewFrontendController(
 		postgresqldatamapper.NewParticipantDataMapper(
 			postgresqlConnector,
