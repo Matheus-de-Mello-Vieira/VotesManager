@@ -3,19 +3,12 @@
 ## Usage
 To run everything:
 ```bash
-docker compose up -d postgres
-docker compose up -d kafka
+make setup
 ```
 
-At first time:
+To refresh the rough totals (shown after someone voted), run:
 ```bash
-docker exec --workdir /bin/ -it kafka ./kafka-topics --bootstrap-server localhost:9092 --create --topic votes
-```
-You need to execute the DDL of database too, in `ddl/script.sql`
-
-```
-sleep 10
-docker compose up
+docker exec postgres /bin/psql -h 127.0.0.1 -p 5432 -U postgres -d postgres -c "REFRESH MATERIALIZED VIEW rough_totals"
 ```
 
 * With you brownser, so go to:

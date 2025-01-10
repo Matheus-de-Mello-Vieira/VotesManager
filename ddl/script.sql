@@ -1,3 +1,4 @@
+drop MATERIALIZED VIEW if exists rough_totals;
 drop table if exists votes;
 
 drop table if exists participants;
@@ -21,7 +22,9 @@ CREATE TABLE
         participant_id INT NOT NULL,
         timestamp TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (participant_id) REFERENCES participants (participant_id)
-    ) create materialized view rough_totals as
+    );
+
+CREATE materialized view rough_totals as
 select
     P.participant_id,
     P.participant_name,

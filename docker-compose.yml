@@ -40,12 +40,14 @@ services:
   postgres:
     image: postgres:15.3
     attach: false
+    container_name: postgres
     environment:
       POSTGRES_PASSWORD: example
     ports:
       - "5432:5432"
     volumes:
       - ./local_data/postgres:/var/lib/postgresql/data
+      - ./ddl:/ddl
 
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
