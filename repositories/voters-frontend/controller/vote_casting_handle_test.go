@@ -22,7 +22,7 @@ var _ = Describe("DashBoardController", func() {
 	)
 	BeforeEach(func() {
 		ctx = context.Background()
-		controller = NewFrontendController(mocksdatamappers.MockedParticipantDataMapper{}, mocksdatamappers.MockedVotesDataMapper{}, ctx, os.DirFS("../view/templates/*"))
+		controller = NewFrontendController(mocksdatamappers.MockedParticipantDataMapper{}, mocksdatamappers.MockedVotesDataMapper{}, ctx, os.DirFS("../view/templates/"))
 	})
 
 	Describe("GetThoroughTotals", func() {

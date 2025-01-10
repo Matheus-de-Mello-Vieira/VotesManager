@@ -46,6 +46,13 @@ func (mapper MockedVotesDataMapper) SaveOne(ctx context.Context, vote *domain.Vo
 	return nil
 }
 
+func (mapper MockedVotesDataMapper) SaveMany(ctx context.Context, votes []domain.Vote) error {
+	for _, vote := range votes {
+		mapper.SaveOne(ctx, &vote)
+	}
+	return nil
+}
+
 func getGeneralTotal() (*int, error) {
 	result := len(MockedVotes)
 	return &result, nil
