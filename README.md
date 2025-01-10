@@ -1,17 +1,11 @@
 # BBB Voting
 
 ## Usage
-For the first time:
-```bash
-cp .env.example .env
-```
-
-To run the depedencies:
+To run everything:
 ```bash
 docker compose up -d postgres
 ```
 
-To run the components:
-```bash
-go run voters-frontend/main.go
-```
+* With you brownser, so go to:
+* **voters-frontend** http://localhost:8080/
+* **prodution-frontend**: http://localhost:8081/votes/
