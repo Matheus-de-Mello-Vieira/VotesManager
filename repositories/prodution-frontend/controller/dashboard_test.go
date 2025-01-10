@@ -23,7 +23,7 @@ var _ = Describe("DashBoardController", func() {
 	})
 
 	Describe("GetThoroughTotals", func() {
-		FIt("should return thorough totals", func() {
+		It("should return thorough totals", func() {
 			req := httptest.NewRequest("GET", "http://example.com/votes/thorough", nil)
 			w := httptest.NewRecorder()
 

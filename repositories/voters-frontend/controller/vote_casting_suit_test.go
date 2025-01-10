@@ -9,5 +9,5 @@ import (
 
 func TestVoteService(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Prodution Frontend Suite")
+	RunSpecs(t, "Voters frontend Suite")
 }

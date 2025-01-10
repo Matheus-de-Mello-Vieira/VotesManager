@@ -2,6 +2,7 @@ package mocksdatamappers
 
 import (
 	"bbb-voting/voting-commons/domain"
+	"context"
 	"time"
 )
 
@@ -35,6 +36,14 @@ var MockedVotes = []domain.Vote{
 		Participant: MarieCurie,
 		Timestamp:   newDateByHourMinute(1, 0),
 	},
+}
+
+type MockedVotesDataMapper struct{}
+
+func (mapper MockedVotesDataMapper) SaveOne(ctx context.Context, vote *domain.Vote) error {
+	MockedVotes = append(MockedVotes, *vote)
+	vote.VoteID = MockedVotes[len(MockedVotes)-1].VoteID + 1
+	return nil
 }
 
 func getGeneralTotal() (*int, error) {
