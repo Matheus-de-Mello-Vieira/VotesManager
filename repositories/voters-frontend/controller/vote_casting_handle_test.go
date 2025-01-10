@@ -2,6 +2,7 @@ package controller
 
 import (
 	"fmt"
+	"os"
 
 	mocksdatamappers "bbb-voting/voting-commons/tests"
 	"context"
@@ -20,9 +21,8 @@ var _ = Describe("DashBoardController", func() {
 		controller FrontendController
 	)
 	BeforeEach(func() {
-		templatesPath = "../view/templates/"
 		ctx = context.Background()
-		controller = NewFrontendController(mocksdatamappers.MockedParticipantDataMapper{}, mocksdatamappers.MockedVotesDataMapper{}, ctx)
+		controller = NewFrontendController(mocksdatamappers.MockedParticipantDataMapper{}, mocksdatamappers.MockedVotesDataMapper{}, ctx, os.DirFS("../view/templates/*"))
 	})
 
 	Describe("GetThoroughTotals", func() {

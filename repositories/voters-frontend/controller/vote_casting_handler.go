@@ -71,7 +71,7 @@ func loadRoughTotalPresenter(totalsMap map[domain.Participant]int) RoughTotalPre
 }
 
 func (controller *FrontendController) loadRoughTotalPage(responseWriter http.ResponseWriter) {
-	tmpl, err := template.ParseFiles(templatesPath + "rough_results.html")
+	tmpl, err := template.ParseFS(controller.embedTemplates, "rough_results.html")
 	if err != nil {
 		handleInternalServerError(responseWriter, err)
 		return

@@ -120,7 +120,7 @@ Apesar de ser um sistema relativamente simples, que por se só não justificaria
 Por questão simplicidade, eu vou manter tudo no mesmo repositório, mas seria interessante imaginar isso como sendo um projeto grande, distribuído em nesses repositórios:
 
 * `voting-commons`: códigos comuns entres os serviços, imagine isso enquanto uma biblioteca versionadada via CI/CD
-  * vai conter os datamappers para comunicar com o Kafka (pois é usado em 2 componentes) e os datamappers para comunicar com o Postman (pois é usado por 3 componentes).
+  * vai conter os datamappers para comunicar com o Kafka (pois é usado em 2 componentes) e os datamappers para comunicar com o Postgres (pois é usado por 3 componentes).
 
 * `voters-frontend`: responsável pela interface web dos telespectadores
 * `votes-register`: responsável por consumir a fila do Kafka e salvar os dados agrupados no banco de dados
@@ -139,5 +139,3 @@ Por questão simplicidade, eu vou manter tudo no mesmo repositório, mas seria i
 * Eu tentei usar o template para gerar os HTMLs, o problema é que isso levou a um código com baixa testabilidade, pois todos os dados ficam dentro do HTML.
   * ao invés disso, vou pegaria um arquivo HTML estático e vou preencher os elementos dele com javascript, chamando as rotas do meu sistema.
   * esse erro eu cometi apenas no `voter-frontend`, pois foi o primeiro que fiz. O `prodution-frontend` não terá o mesmo erro
-* Pode personalizar o dashboard, agora ele é apenas por hora, mas talvez pensar ele em minutos, se
-

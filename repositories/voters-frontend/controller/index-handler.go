@@ -4,28 +4,28 @@ import (
 	"bbb-voting/voting-commons/domain"
 	"context"
 	"html/template"
+	"io/fs"
 	"net/http"
 )
-
-// base path change inside tests
-var templatesPath = "voters-frontend/view/templates/"
 
 type FrontendController struct {
 	participantRepository domain.ParticipantRepository
 	voteRepository        domain.VoteRepository
 	context               context.Context
+	embedTemplates        fs.FS
 }
 
-func NewFrontendController(participantRepository domain.ParticipantRepository, voteRepository domain.VoteRepository, context context.Context) FrontendController {
+func NewFrontendController(participantRepository domain.ParticipantRepository, voteRepository domain.VoteRepository, context context.Context, embedTemplates fs.FS) FrontendController {
 	return FrontendController{
 		participantRepository: participantRepository,
 		voteRepository:        voteRepository,
 		context:               context,
+		embedTemplates:        embedTemplates,
 	}
 }
 
 func (controller *FrontendController) IndexHandler(responseWriter http.ResponseWriter, request *http.Request) {
-	tmpl, err := template.ParseFiles(templatesPath + "index.html")
+	tmpl, err := template.ParseFS(controller.embedTemplates, "index.html")
 	if err != nil {
 		handleInternalServerError(responseWriter, err)
 		return

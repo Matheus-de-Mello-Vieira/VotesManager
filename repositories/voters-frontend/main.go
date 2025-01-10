@@ -4,12 +4,23 @@ import (
 	"bbb-voting/voters-frontend/controller"
 	postgresqldatamapper "bbb-voting/voting-commons/data-layer/postgresql"
 	"context"
+	"embed"
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
 )
 
+//go:embed view/static/*
+var staticFilesFull embed.FS
+
+//go:embed view/templates/*
+var templatesFull embed.FS
+
 func main() {
+	var templates, _ = fs.Sub(templatesFull, "view/templates")
+	var staticFiles, _ = fs.Sub(staticFilesFull, "view/static")
+
 	context := context.Background()
 	postgresqlConnector := postgresqldatamapper.NewPostgresqlConnector(os.Getenv("POSTGRESQL_URI"))
 	frontendController := controller.NewFrontendController(
@@ -19,12 +30,11 @@ func main() {
 		postgresqldatamapper.NewVoteDataMapper(
 			postgresqlConnector,
 		),
-		context,
+		context, templates,
 	)
 	http.HandleFunc("/", frontendController.IndexHandler)
 	http.HandleFunc("/votes", frontendController.VoteCastingHandler)
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("voters-frontend/view/static"))))
-	http.Handle("/templates/", http.StripPrefix("/templates/", http.FileServer(http.Dir("voters-frontend/view/templates"))))
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticFiles))))
 
 	log.Println("Server is running on http://localhost:8080")
 	if err := http.ListenAndServe(":8080", nil); err != nil {

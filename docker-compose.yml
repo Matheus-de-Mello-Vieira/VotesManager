@@ -1,4 +1,28 @@
 services:
+  prodution-frontend:
+    build: 
+      context: .
+      args:
+        MAIN_PATH: prodution-frontend/main.go
+    ports:
+      - "8081:8081"
+    environment:
+      - POSTGRESQL_URI=postgresql://postgres:example@postgres:5432/postgres
+    depends_on:
+      - postgres
+
+  voters-frontend:
+    build: 
+      context: .
+      args:
+        MAIN_PATH: voters-frontend/main.go
+    ports:
+      - "8080:8080"
+    environment:
+      - POSTGRESQL_URI=postgresql://postgres:example@postgres:5432/postgres
+    depends_on:
+      - postgres
+
   postgres:
     image: postgres:15.3
     environment:
