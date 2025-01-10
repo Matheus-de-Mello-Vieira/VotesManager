@@ -2,6 +2,7 @@ package main
 
 import (
 	"bbb-voting/voters-frontend/controller"
+	kafkadatamapper "bbb-voting/voting-commons/data-layer/kafka"
 	postgresqldatamapper "bbb-voting/voting-commons/data-layer/postgresql"
 	"context"
 	"embed"
@@ -27,8 +28,8 @@ func main() {
 		postgresqldatamapper.NewParticipantDataMapper(
 			postgresqlConnector,
 		),
-		postgresqldatamapper.NewVoteDataMapper(
-			postgresqlConnector,
+		kafkadatamapper.NewVoteDataMapper(
+			[]string{os.Getenv("KAFKA_URI")}, "events", 30,
 		),
 		context, templates,
 	)
