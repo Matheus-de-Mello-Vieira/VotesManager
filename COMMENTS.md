@@ -51,6 +51,7 @@ Isso posto, eu vou adotar a solução 3, agora vou refinar ela:
    * Ao invés disso, poderíamos pensar em armazenar os dados agrupados por tempo e por candidato, ao invés de apenas armazenar os dados simples.
      * A forma como agruparia vou abordar no próximo tema, do sistema de votação ficar assíncrono.
      * mas esse agrupamento facilitaria também a parte do código para a produção do BBB, pois teria que somar muito menos dados
+3. ao invés disso, podemos usar um MATERIALIZED VIEW
 
 #### sistema assíncrono
 
@@ -139,3 +140,4 @@ Por questão simplicidade, eu vou manter tudo no mesmo repositório, mas seria i
 * Eu tentei usar o template para gerar os HTMLs, o problema é que isso levou a um código com baixa testabilidade, pois todos os dados ficam dentro do HTML.
   * ao invés disso, vou pegaria um arquivo HTML estático e vou preencher os elementos dele com javascript, chamando as rotas do meu sistema.
   * esse erro eu cometi apenas no `voter-frontend`, pois foi o primeiro que fiz. O `prodution-frontend` não terá o mesmo erro
+* Um mecanismo de consistência usando o sistema de commit do Kafka
