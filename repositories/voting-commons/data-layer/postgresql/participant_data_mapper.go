@@ -72,7 +72,8 @@ func (mapper ParticipantDataMapper) GetRoughTotals(ctx context.Context) (map[dom
 	}
 	defer dbpool.Close()
 
-	return getVotesByParticipant(dbpool, ctx)
+	query := `select * from rough_totals`
+	return getManyFromQuery(dbpool, ctx, query)
 }
 
 func (mapper ParticipantDataMapper) GetThoroughTotals(ctx context.Context) (*domain.ThoroughTotals, error) {
@@ -102,7 +103,6 @@ func (mapper ParticipantDataMapper) GetThoroughTotals(ctx context.Context) (*dom
 	return &result, nil
 }
 
-
 func getVotesByParticipant(dbpool *pgxpool.Pool, ctx context.Context) (map[domain.Participant]int, error) {
 	query := `select
 			P.participant_id,
@@ -120,7 +120,10 @@ func getVotesByParticipant(dbpool *pgxpool.Pool, ctx context.Context) (map[domai
 				participant_id) as T
 				on
 			T.participant_id = P.participant_id;`
+	return getManyFromQuery(dbpool, ctx, query)
+}
 
+func getManyFromQuery(dbpool *pgxpool.Pool, ctx context.Context, query string) (map[domain.Participant]int, error) {
 	rows, err := dbpool.Query(ctx, query)
 	if err != nil {
 		return nil, fmt.Errorf("failed to query participants: %w", err)
@@ -142,4 +145,3 @@ func getVotesByParticipant(dbpool *pgxpool.Pool, ctx context.Context) (map[domai
 
 	return result, nil
 }
-
