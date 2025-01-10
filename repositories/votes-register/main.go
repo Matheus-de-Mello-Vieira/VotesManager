@@ -18,14 +18,14 @@ func main() {
 	}
 
 	ctx := context.Background()
-	votes, error := consumer.Consume(ctx)
+	votes, err := consumer.Consume(ctx)
 
 	postgresqlConnector := postgresqldatamapper.NewPostgresqlConnector(os.Getenv("POSTGRESQL_URI"))
 	voteDataMapper := postgresqldatamapper.NewVoteDataMapper(
 		postgresqlConnector,
 	)
 
-	if error != nil {
+	if err != nil {
 		log.Fatalf("failed to consume topic: %v", err)
 	}
 

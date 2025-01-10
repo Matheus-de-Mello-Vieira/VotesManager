@@ -141,4 +141,6 @@ Por questão simplicidade, eu vou manter tudo no mesmo repositório, mas seria i
   * ao invés disso, vou pegaria um arquivo HTML estático e vou preencher os elementos dele com javascript, chamando as rotas do meu sistema.
   * esse erro eu cometi apenas no `voter-frontend`, pois foi o primeiro que fiz. O `prodution-frontend` não terá o mesmo erro
 * Um mecanismo de consistência usando o sistema de commit do Kafka
-* ao invés de fazer o `votesAggregator`, eu acabei fazendo um view materializada no portman, mas faltou configurar alguma coisa para executar o commando `REFRESH MATERIALIZED VIEW sales_summary`
+  * ao invés de fazer o `votesAggregator`, eu acabei fazendo um view materializada no postgresl, mas faltou configurar alguma coisa para executar o comando `REFRESH MATERIALIZED VIEW rough_totals`
+
+* `votes-register`: fazer a maioria das coisas que faço no `main.go` no `service/event_consumer.go`, através de inversão de depedência.
