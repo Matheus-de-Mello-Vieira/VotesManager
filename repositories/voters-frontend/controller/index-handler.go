@@ -1,25 +1,26 @@
 package controller
 
 import (
-	"html/template"
-	"net/http"
 	"bbb-voting/voting-commons/domain"
 	"context"
+	"html/template"
+	"net/http"
 )
 
-const templatesPath = "voters-frontend/view/templates/"
+// base path change inside tests
+var templatesPath = "voters-frontend/view/templates/"
 
 type FrontendController struct {
 	participantRepository domain.ParticipantRepository
-	voteRepository domain.VoteRepository
-	context context.Context
+	voteRepository        domain.VoteRepository
+	context               context.Context
 }
 
 func NewFrontendController(participantRepository domain.ParticipantRepository, voteRepository domain.VoteRepository, context context.Context) FrontendController {
 	return FrontendController{
 		participantRepository: participantRepository,
-		voteRepository: voteRepository,
-		context: context,
+		voteRepository:        voteRepository,
+		context:               context,
 	}
 }
 

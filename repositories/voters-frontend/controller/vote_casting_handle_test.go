@@ -1,14 +1,16 @@
 package controller
 
 import (
+	"fmt"
+
 	mocksdatamappers "bbb-voting/voting-commons/tests"
 	"context"
+	"net/http/httptest"
 	"net/url"
 	"strings"
 
-	"net/http/httptest"
-
 	. "github.com/onsi/ginkgo/v2"
+
 	. "github.com/onsi/gomega"
 )
 
@@ -18,16 +20,17 @@ var _ = Describe("DashBoardController", func() {
 		controller FrontendController
 	)
 	BeforeEach(func() {
+		templatesPath = "../view/templates/"
 		ctx = context.Background()
 		controller = NewFrontendController(mocksdatamappers.MockedParticipantDataMapper{}, mocksdatamappers.MockedVotesDataMapper{}, ctx)
 	})
 
 	Describe("GetThoroughTotals", func() {
-		FIt("Post cast Vote", func() {
-			ParticipantID := 1
+		It("Post cast Vote", func() {
+			const participantID int = 1
 
 			data := url.Values{}
-			data.Set("id", string(ParticipantID))
+			data.Set("id", fmt.Sprint(participantID))
 			req := httptest.NewRequest("POST", "http://example.com/votes", strings.NewReader(data.Encode()))
 			req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 
@@ -41,7 +44,7 @@ var _ = Describe("DashBoardController", func() {
 			resp := w.Result()
 			Expect(resp.StatusCode).To(Equal(200))
 			Expect(newLen).To(Equal(oldLen + 1))
-			Expect(mocksdatamappers.MockedVotes[len(mocksdatamappers.MockedVotes)-1].Participant.ParticipantID).To(Equal(ParticipantID))
+			Expect(mocksdatamappers.MockedVotes[len(mocksdatamappers.MockedVotes)-1].Participant.ParticipantID).To(Equal(1))
 		})
 	})
 })
