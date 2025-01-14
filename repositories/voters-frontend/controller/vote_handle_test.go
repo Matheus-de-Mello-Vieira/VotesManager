@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -11,8 +12,6 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
-	"strings"
 
 	. "github.com/onsi/ginkgo/v2"
 
@@ -37,7 +36,7 @@ var _ = Describe("VotesController", func() {
 
 			w := httptest.NewRecorder()
 
-			controller.GetParticipantsHandler(w, req)
+			controller.GetVotesRoughTotalsHandler(w, req)
 
 			resp := w.Result()
 			body, _ := io.ReadAll(resp.Body)
@@ -63,22 +62,22 @@ var _ = Describe("VotesController", func() {
 		It("vote", func() {
 			const participantID int = 1
 
-			data := url.Values{}
-			data.Set("id", fmt.Sprint(participantID))
-			req := httptest.NewRequest("POST", "http://example.com/votes", strings.NewReader(data.Encode()))
-			req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+			inputData := map[string]int{"participant_id": participantID}
+			inputBody, _ := json.Marshal(inputData)
+			req := httptest.NewRequest("POST", "http://example.com/votes", bytes.NewBuffer(inputBody))
+			req.Header.Add("Content-Type", "application/json")
 
 			w := httptest.NewRecorder()
 
 			oldLen := len(mocksdatamappers.MockedVotes)
-			controller.GetVotesRoughTotalsHandler(w, req)
+			controller.PostVoteHandler(w, req)
 
 			newLen := len(mocksdatamappers.MockedVotes)
 
 			resp := w.Result()
-			Expect(resp.StatusCode).To(Equal(200))
+			Expect(resp.StatusCode).To(Equal(http.StatusCreated))
 			Expect(newLen).To(Equal(oldLen + 1))
-			Expect(mocksdatamappers.MockedVotes[len(mocksdatamappers.MockedVotes)-1].Participant.ParticipantID).To(Equal(1))
+			Expect(mocksdatamappers.MockedVotes[len(mocksdatamappers.MockedVotes)-1].Participant.ParticipantID).To(Equal(participantID))
 		})
 	})
 })

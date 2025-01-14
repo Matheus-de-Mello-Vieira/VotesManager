@@ -23,7 +23,7 @@ func (controller *FrontendController) GetVotesRoughTotalsHandler(responseWriter 
 	result := formatRoughTotals(totalsMap)
 
 	responseWriter.Header().Set("Content-Type", "application/json")
-	responseWriter.WriteHeader(http.StatusCreated)
+	responseWriter.WriteHeader(http.StatusOK)
 	json.NewEncoder(responseWriter).Encode(result)
 }
 func formatRoughTotals(totalsMap map[domain.Participant]int) map[string]int {

@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 
+	"net/http"
 	"net/http/httptest"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -34,7 +35,7 @@ var _ = Describe("DashBoardController", func() {
 			resp := w.Result()
 			body, _ := io.ReadAll(resp.Body)
 
-			Expect(resp.StatusCode).To(Equal(200))
+			Expect(resp.StatusCode).To(Equal(http.StatusOK))
 
 			contentBody := ThoroughTotalsResponseModel{}
 			json.Unmarshal(body, &contentBody)
