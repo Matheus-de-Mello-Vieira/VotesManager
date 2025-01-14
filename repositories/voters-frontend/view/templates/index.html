@@ -1,29 +1,19 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml" lang="pt-BR" xml:lang="en">
-<head>
+  <head>
     <title>Paredão BBB</title>
-    <link rel="stylesheet" type="text/css" href="/static/styles.css">
-</head>
-<body>
+    <link rel="stylesheet" type="text/css" href="/static/styles.css" />
+  </head>
+  <body>
     <div class="container">
-        <h1>Clique para votar</h1>
-        <div>
-            <form action="/votes" method="POST" onsubmit="return checkCaptchaOnSubmit()">
-            {{range .}}
-                <input type="hidden" name="id" value="{{.ParticipantID}}">
-                <button type="submit" class="participant-button">
-                    {{.Name}}
-                </button>
-                {{else}}
-                <p class="no-participants">No participants found</p>
-                {{end}}
-                <input type="checkbox" id="captcha" name="captcha" /> <label for="captcha">Eu não sou robô</label>
-            </form>
-        </div>
+      <h1>Clique para votar</h1>
+      <div>
+        <div id="participants-buttons"></div>
+        <input type="checkbox" id="captcha" name="captcha" />
+        <label for="captcha">Eu não sou robô</label>
+      </div>
     </div>
-    <script
-      src="/static/check_captcha.js"
-      type="text/javascript"
-    ></script>
-</body>
+    <script src="/static/commons.js" type="text/javascript"></script>
+    <script src="/static/index.js" type="text/javascript"></script>
+  </body>
 </html>

@@ -3,6 +3,7 @@ package controller
 import (
 	"bbb-voting/voting-commons/domain"
 	"context"
+	"encoding/json"
 	"html/template"
 	"io/fs"
 	"net/http"
@@ -31,16 +32,26 @@ func (controller *FrontendController) IndexHandler(responseWriter http.ResponseW
 		return
 	}
 
-	// Render the template with the items data
-	participants, err1 := controller.participantRepository.FindAll(controller.context)
-	if err1 != nil {
-		handleInternalServerError(responseWriter, err1)
-		return
-	}
-
-	err = tmpl.Execute(responseWriter, participants)
+	err = tmpl.Execute(responseWriter, nil)
 	if err != nil {
 		handleInternalServerError(responseWriter, err)
 		return
 	}
+}
+
+func (controller *FrontendController) GetParticipants(responseWriter http.ResponseWriter, request *http.Request) {
+	if request.Method != http.MethodGet {
+		http.Error(responseWriter, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	participants, err := controller.participantRepository.FindAll(controller.context)
+	if err != nil {
+		handleInternalServerError(responseWriter, err)
+		return
+	}
+
+	responseWriter.Header().Set("Content-Type", "application/json")
+	responseWriter.WriteHeader(http.StatusCreated)
+	json.NewEncoder(responseWriter).Encode(participants)
 }

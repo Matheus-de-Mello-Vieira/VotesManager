@@ -1,6 +1,6 @@
 package domain
 
 type Participant struct {
-	ParticipantID int
-	Name          string
+	ParticipantID int    `json:"id"`
+	Name          string `json:"name"`
 }

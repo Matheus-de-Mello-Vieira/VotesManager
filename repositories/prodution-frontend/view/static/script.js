@@ -8,8 +8,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 async function getTotals(retries = 3) {
+  return await makeRequest(`${API_URL}/votes/thorough`, retries)
+}
+
+async function makeRequest(url, retries = 3) {
   try {
-    const response = await fetch(`${API_URL}/votes/thorough`);
+    const response = await fetch(url);
 
     if (!response.ok) {
       throw new Error("Falha ao obter resultados");
