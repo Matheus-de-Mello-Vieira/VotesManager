@@ -15,6 +15,46 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/": {
+            "get": {
+                "description": "Responds with an HTML page with the index page",
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "html"
+                ],
+                "summary": "Serve HTML index page",
+                "responses": {
+                    "200": {
+                        "description": "HTML Content",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/pages/totals/rough": {
+            "get": {
+                "description": "Responds with an HTML page with a rought total graph",
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "html"
+                ],
+                "summary": "Serve HTML rought total page",
+                "responses": {
+                    "200": {
+                        "description": "HTML Content",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/participants": {
             "get": {
                 "description": "Responds with the list of participants",
@@ -40,6 +80,55 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/votes": {
+            "post": {
+                "description": "Cast a Vote",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "votes"
+                ],
+                "summary": "Post Vote",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/domain.Vote"
+                        }
+                    }
+                }
+            }
+        },
+        "/votes/totals/rough": {
+            "get": {
+                "description": "Get rough totals",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "totals votes"
+                ],
+                "summary": "Get Rough Totals",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "integer"
+                            }
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
@@ -51,6 +140,20 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
+                }
+            }
+        },
+        "domain.Vote": {
+            "type": "object",
+            "properties": {
+                "participant": {
+                    "$ref": "#/definitions/domain.Participant"
+                },
+                "timestamp": {
+                    "type": "string"
+                },
+                "voteID": {
+                    "type": "integer"
                 }
             }
         }

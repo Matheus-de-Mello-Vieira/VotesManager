@@ -22,7 +22,20 @@ definitions:
 info:
   contact: {}
 paths:
-  /votes/thorough:
+  /:
+    get:
+      description: Responds with an HTML page with a thorough total graph
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: HTML Content
+          schema:
+            type: string
+      summary: Serve HTML thorough total page
+      tags:
+      - html
+  /votes/totals/thorough:
     get:
       consumes:
       - application/json
@@ -36,5 +49,5 @@ paths:
             $ref: '#/definitions/controller.ThoroughTotalsResponseModel'
       summary: Get Thorough Totals
       tags:
-      - Totals Votes
+      - totals votes
 swagger: "2.0"

@@ -6,9 +6,44 @@ definitions:
       name:
         type: string
     type: object
+  domain.Vote:
+    properties:
+      participant:
+        $ref: '#/definitions/domain.Participant'
+      timestamp:
+        type: string
+      voteID:
+        type: integer
+    type: object
 info:
   contact: {}
 paths:
+  /:
+    get:
+      description: Responds with an HTML page with the index page
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: HTML Content
+          schema:
+            type: string
+      summary: Serve HTML index page
+      tags:
+      - html
+  /pages/totals/rough:
+    get:
+      description: Responds with an HTML page with a rought total graph
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: HTML Content
+          schema:
+            type: string
+      summary: Serve HTML rought total page
+      tags:
+      - html
   /participants:
     get:
       consumes:
@@ -26,4 +61,36 @@ paths:
       summary: Get Participants
       tags:
       - participants
+  /votes:
+    post:
+      consumes:
+      - application/json
+      description: Cast a Vote
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.Vote'
+      summary: Post Vote
+      tags:
+      - votes
+  /votes/totals/rough:
+    get:
+      consumes:
+      - application/json
+      description: Get rough totals
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: integer
+            type: object
+      summary: Get Rough Totals
+      tags:
+      - totals votes
 swagger: "2.0"

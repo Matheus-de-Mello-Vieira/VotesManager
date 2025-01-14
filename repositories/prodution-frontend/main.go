@@ -33,7 +33,7 @@ func main() {
 		context, templates,
 	)
 	http.HandleFunc("/", frontendController.GetPage)
-	http.HandleFunc("/votes/thorough", frontendController.GetThoroughTotals)
+	http.HandleFunc("/votes/totals/thorough", frontendController.GetThoroughTotals)
 
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticFiles))))
 	http.Handle("/swagger/", httpSwagger.WrapHandler)

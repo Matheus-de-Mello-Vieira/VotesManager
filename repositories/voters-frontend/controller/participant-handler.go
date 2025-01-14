@@ -25,6 +25,12 @@ func NewFrontendController(participantRepository domain.ParticipantRepository, v
 	}
 }
 
+// @Summary Serve HTML index page
+// @Description Responds with an HTML page with the index page
+// @Tags html
+// @Produce html
+// @Success 200 {string} string "HTML Content"
+// @Router / [get]
 func (controller *FrontendController) IndexHandler(responseWriter http.ResponseWriter, request *http.Request) {
 	tmpl, err := template.ParseFS(controller.embedTemplates, "index.html")
 	if err != nil {

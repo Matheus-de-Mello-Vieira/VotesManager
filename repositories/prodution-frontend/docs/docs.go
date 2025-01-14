@@ -15,7 +15,27 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/votes/thorough": {
+        "/": {
+            "get": {
+                "description": "Responds with an HTML page with a thorough total graph",
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "html"
+                ],
+                "summary": "Serve HTML thorough total page",
+                "responses": {
+                    "200": {
+                        "description": "HTML Content",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/votes/totals/thorough": {
             "get": {
                 "description": "Get throught totals",
                 "consumes": [
@@ -25,7 +45,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Totals Votes"
+                    "totals votes"
                 ],
                 "summary": "Get Thorough Totals",
                 "responses": {

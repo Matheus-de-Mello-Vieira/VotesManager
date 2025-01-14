@@ -30,6 +30,12 @@ type ThoroughTotalsResponseModel struct {
 	TotalByParticipant map[string]int       `json:"total_by_participant"`
 }
 
+// @Summary Serve HTML thorough total page
+// @Description Responds with an HTML page with a thorough total graph
+// @Tags html
+// @Produce html
+// @Success 200 {string} string "HTML Content"
+// @Router / [get]
 func (controller *FrontendController) GetPage(responseWriter http.ResponseWriter, request *http.Request) {
 	tmpl, err := template.ParseFS(controller.embedTemplates, "dashboard.html")
 
@@ -52,11 +58,11 @@ func handleInternalServerError(responseWriter http.ResponseWriter, err error) {
 
 // @Summary Get Thorough Totals
 // @Description Get throught totals
-// @Tags Totals Votes
+// @Tags totals votes
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} ThoroughTotalsResponseModel
-// @Router /votes/thorough [get]
+// @Router /votes/totals/thorough [get]
 func (controller *FrontendController) GetThoroughTotals(responseWriter http.ResponseWriter, request *http.Request) {
 	// Only allow GET requests
 	if request.Method != http.MethodGet {
