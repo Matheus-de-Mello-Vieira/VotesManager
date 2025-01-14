@@ -34,7 +34,7 @@ func main() {
 		context, templates,
 	)
 	http.HandleFunc("/votes/totals/rough", frontendController.GetVotesRoughTotalsHandler)
-	http.HandleFunc("/participants", frontendController.GetParticipants)
+	http.HandleFunc("/participants", frontendController.GetParticipantsHandler)
 
 	http.HandleFunc("/votes", frontendController.PostVoteHandler)
 	http.HandleFunc("/", frontendController.IndexHandler)

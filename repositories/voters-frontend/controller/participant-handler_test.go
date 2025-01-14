@@ -16,7 +16,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-var _ = Describe("DashBoardController", func() {
+var _ = Describe("ParticipantsController", func() {
 	var (
 		ctx        context.Context
 		controller FrontendController
@@ -26,13 +26,13 @@ var _ = Describe("DashBoardController", func() {
 		controller = NewFrontendController(mocksdatamappers.MockedParticipantDataMapper{}, mocksdatamappers.MockedVotesDataMapper{}, ctx, os.DirFS("../view/templates/"))
 	})
 
-	Describe("GetThoroughTotals", func() {
-		FIt("Post cast Vote", func() {
-			req := httptest.NewRequest("GET", "http://url", nil)
+	Describe("GetParticipantsHandler", func() {
+		It("MustShowTheList", func() {
+			req := httptest.NewRequest("GET", "http://example.com/participants", nil)
 
 			w := httptest.NewRecorder()
 
-			controller.GetParticipants(w, req)
+			controller.GetParticipantsHandler(w, req)
 
 			resp := w.Result()
 			body, _ := io.ReadAll(resp.Body)

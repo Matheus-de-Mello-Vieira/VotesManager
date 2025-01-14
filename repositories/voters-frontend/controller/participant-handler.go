@@ -39,7 +39,7 @@ func (controller *FrontendController) IndexHandler(responseWriter http.ResponseW
 	}
 }
 
-func (controller *FrontendController) GetParticipants(responseWriter http.ResponseWriter, request *http.Request) {
+func (controller *FrontendController) GetParticipantsHandler(responseWriter http.ResponseWriter, request *http.Request) {
 	if request.Method != http.MethodGet {
 		http.Error(responseWriter, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
