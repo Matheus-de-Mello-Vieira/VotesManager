@@ -2,42 +2,54 @@ package controller
 
 import (
 	"bbb-voting/voting-commons/domain"
+	"encoding/json"
 	"html/template"
-	"log"
 	"net/http"
-	"strconv"
 	"time"
 )
 
-func (controller *FrontendController) VoteCastingHandler(responseWriter http.ResponseWriter, request *http.Request) {
-	// Only allow POST requests
+func (controller *FrontendController) GetVotesRoughTotalsHandler(responseWriter http.ResponseWriter, request *http.Request) {
+	if request.Method != http.MethodGet {
+		http.Error(responseWriter, "Method Not Allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	totalsMap, err := controller.participantRepository.GetRoughTotals(controller.context)
+	if err != nil {
+		handleInternalServerError(responseWriter, err)
+		return
+	}
+
+	result := formatRoughTotals(totalsMap)
+
+	responseWriter.Header().Set("Content-Type", "application/json")
+	responseWriter.WriteHeader(http.StatusCreated)
+	json.NewEncoder(responseWriter).Encode(result)
+}
+func formatRoughTotals(totalsMap map[domain.Participant]int) map[string]int {
+	result := map[string]int{}
+
+	for participant, vote := range totalsMap {
+		result[participant.Name] = vote
+	}
+
+	return result
+}
+
+type postVoteBodyModel struct {
+	ParticipantID int `json:"participant_id"`
+}
+
+func (controller *FrontendController) PostVoteHandler(responseWriter http.ResponseWriter, request *http.Request) {
 	if request.Method != http.MethodPost {
 		http.Error(responseWriter, "Method Not Allowed", http.StatusMethodNotAllowed)
 		return
 	}
 
-	// Parse form data from POST request
-	if err := request.ParseForm(); err != nil {
-		http.Error(responseWriter, "Unable to parse form", http.StatusBadRequest)
-		log.Fatal(err)
-		return
-	}
+	body := postVoteBodyModel{}
+	loadBody(responseWriter, request, &body)
 
-	// Get the participant ID from the form
-	idStr := request.FormValue("id")
-	if idStr == "" {
-		http.Error(responseWriter, "Missing participant ID", http.StatusBadRequest)
-		return
-	}
-
-	// Convert ID to integer
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		http.Error(responseWriter, "Invalid participant ID", http.StatusBadRequest)
-		return
-	}
-
-	participant, _ := controller.participantRepository.FindByID(controller.context, id)
+	participant, _ := controller.participantRepository.FindByID(controller.context, body.ParticipantID)
 
 	if participant == nil {
 		http.Error(responseWriter, "Participant not found", http.StatusNotFound)
@@ -48,26 +60,9 @@ func (controller *FrontendController) VoteCastingHandler(responseWriter http.Res
 
 	controller.voteRepository.SaveOne(controller.context, &vote)
 
-	controller.loadRoughTotalPage(responseWriter)
-}
-
-type RoughTotalPresenter struct {
-	Labels []string
-	Votes  []int
-}
-
-func loadRoughTotalPresenter(totalsMap map[domain.Participant]int) RoughTotalPresenter {
-	result := RoughTotalPresenter{
-		Labels: []string{},
-		Votes:  []int{},
-	}
-
-	for participant, vote := range totalsMap {
-		result.Labels = append(result.Labels, participant.Name)
-		result.Votes = append(result.Votes, vote)
-	}
-
-	return result
+	responseWriter.Header().Set("Content-Type", "application/json")
+	responseWriter.WriteHeader(http.StatusCreated)
+	json.NewEncoder(responseWriter).Encode(vote)
 }
 
 func (controller *FrontendController) loadRoughTotalPage(responseWriter http.ResponseWriter) {
@@ -83,7 +78,7 @@ func (controller *FrontendController) loadRoughTotalPage(responseWriter http.Res
 		return
 	}
 
-	data := loadRoughTotalPresenter(totalsMap)
+	data := formatRoughTotals(totalsMap)
 
 	err = tmpl.Execute(responseWriter, data)
 	if err != nil {

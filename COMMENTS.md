@@ -65,6 +65,10 @@ Para evitar o uso de locks, e poder dar autoridade a memória local do sistema c
 * O Kafka garante que uma partição seja consumida apenas por um consumidor.
 * Então se eu colocar um `partition key` relativo aos agrupamentos que quero implementar, eu terei tudo que preciso.
 
+Outro ponto importante é que se esse principio de que não podemos ter 1000 conexões por segundo ao banco de dados para escrever os votos, em teoria também não poderia para obter os resultados parciais dos votos, de forma que fique inviável qualquer solução nesse sentido.
+
+* Talvez pensamos em sistemas escaláveis de cache, como o Redis
+
 #### Qual arquitetura usar
 
 Acredito que colocar todo o código em um serviço apenas não funcionaria pois tenho demandas com necessidade de escalonamento muito diferentes: um para lidar com os somatórios e outro para lidar com os registros das somas.

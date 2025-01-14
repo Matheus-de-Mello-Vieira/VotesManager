@@ -8,7 +8,7 @@ make setup
 
 To refresh the rough totals (shown after someone voted), run:
 ```bash
-docker exec postgres /bin/psql -h 127.0.0.1 -p 5432 -U postgres -d postgres -c "REFRESH MATERIALIZED VIEW rough_totals"
+make refresh_rough_totals
 ```
 
 * With you brownser, so go to:
