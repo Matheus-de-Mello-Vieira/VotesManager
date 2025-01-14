@@ -141,12 +141,8 @@ Por questão simplicidade, eu vou manter tudo no mesmo repositório, mas seria i
 * criação de um pipeline CI/CD
   * SonarQube
 * implementar o recaptcha
-* Eu tentei usar o template para gerar os HTMLs, o problema é que isso levou a um código com baixa testabilidade, pois todos os dados ficam dentro do HTML.
-  * ao invés disso, vou pegaria um arquivo HTML estático e vou preencher os elementos dele com javascript, chamando as rotas do meu sistema.
-  * esse erro eu cometi apenas no `voter-frontend`, pois foi o primeiro que fiz. O `prodution-frontend` não terá o mesmo erro
 * Um mecanismo de consistência usando o sistema de commit do Kafka
   * ao invés de fazer o `votesAggregator`, eu acabei fazendo um view materializada no postgresl, mas faltou configurar alguma coisa para executar o comando `REFRESH MATERIALIZED VIEW rough_totals`
-
 * `votes-register`: fazer a maioria das coisas que faço no `main.go` no `service/event_consumer.go`, através de inversão de dependência.
 * Implementei os testes de carga, mas eles falharam pois ainda não consegui implementar o escalonamento
   * seria necessário um loadbalancer para distribui as cargas os containers do `voters-frontend`, além de configurar a escabilidade do kafka

@@ -6,9 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"os"
-	"os/signal"
-	"syscall"
 
 	"github.com/IBM/sarama"
 )
@@ -25,6 +22,7 @@ func (h *ConsumerGroupHandler) Setup(_ sarama.ConsumerGroupSession) error {
 
 // Cleanup is run after consuming ends
 func (h *ConsumerGroupHandler) Cleanup(_ sarama.ConsumerGroupSession) error {
+	close(h.events)
 	return nil
 }
 
@@ -48,11 +46,11 @@ type KafkaVoteConsumer struct {
 	groupID string
 }
 
-func NewKafkaVoteConsumer(brokers []string, topic string, groupID string) (*KafkaVoteConsumer, error) {
-	return &KafkaVoteConsumer{brokers, topic, groupID}, nil
+func NewKafkaVoteConsumer(brokers []string, topic string, groupID string) (KafkaVoteConsumer, error) {
+	return KafkaVoteConsumer{brokers, topic, groupID}, nil
 }
 
-func (kc KafkaVoteConsumer) Consume(ctx context.Context) (<-chan domain.Vote, error) {
+func (kc KafkaVoteConsumer) GetVoteChan(ctx *context.Context) (<-chan domain.Vote, error) {
 	config := sarama.NewConfig()
 	config.Consumer.Offsets.Initial = sarama.OffsetNewest // Start from the latest message
 
@@ -68,16 +66,6 @@ func (kc KafkaVoteConsumer) Consume(ctx context.Context) (<-chan domain.Vote, er
 	// Create a ConsumerGroupHandler and pass the events channel
 	handler := &ConsumerGroupHandler{events: events}
 
-	// Handle system signals for graceful shutdown
-	ctx, cancel := context.WithCancel(context.Background())
-	go func() {
-		sigchan := make(chan os.Signal, 1)
-		signal.Notify(sigchan, os.Interrupt, syscall.SIGTERM)
-		<-sigchan
-		cancel()
-		close(events) // Close the events channel on shutdown
-	}()
-
 	// Start consuming in a separate goroutine
 	go func() {
 		defer func() {
@@ -88,7 +76,7 @@ func (kc KafkaVoteConsumer) Consume(ctx context.Context) (<-chan domain.Vote, er
 		}()
 
 		for {
-			if err := consumerGroup.Consume(ctx, []string{kc.topic}, handler); err != nil {
+			if err := consumerGroup.Consume(*ctx, []string{kc.topic}, handler); err != nil {
 				log.Printf("Error consuming messages: %v", err)
 				break
 			}
@@ -97,4 +85,3 @@ func (kc KafkaVoteConsumer) Consume(ctx context.Context) (<-chan domain.Vote, er
 
 	return events, nil
 }
-
