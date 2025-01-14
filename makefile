@@ -20,3 +20,8 @@ load_test:
 up_depedencies:
 	docker compose up -d postgres kafka
 
+GOPATH = $(shell cd repositories ; go env GOPATH)
+swagger:
+	cd repositories ; \
+		$(GOPATH)/bin/swag init --generalInfo prodution-frontend/main.go --output prodution-frontend/docs --exclude voters-frontend; \
+		$(GOPATH)/bin/swag init --generalInfo voters-frontend/main.go --output voters-frontend/docs --exclude prodution-frontend

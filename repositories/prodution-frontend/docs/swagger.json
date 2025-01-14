@@ -1,0 +1,64 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "contact": {}
+    },
+    "paths": {
+        "/votes/thorough": {
+            "get": {
+                "description": "Get throught totals",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Totals Votes"
+                ],
+                "summary": "Get Thorough Totals",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/controller.ThoroughTotalsResponseModel"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "controller.ThoroughTotalsResponseModel": {
+            "type": "object",
+            "properties": {
+                "general_total": {
+                    "type": "integer"
+                },
+                "total_by_hour": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/domain.TotalByHour"
+                    }
+                },
+                "total_by_participant": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "domain.TotalByHour": {
+            "type": "object",
+            "properties": {
+                "hour": {
+                    "type": "integer"
+                },
+                "total": {
+                    "type": "integer"
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,29 @@
+definitions:
+  domain.Participant:
+    properties:
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /participants:
+    get:
+      consumes:
+      - application/json
+      description: Responds with the list of participants
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/domain.Participant'
+            type: array
+      summary: Get Participants
+      tags:
+      - participants
+swagger: "2.0"

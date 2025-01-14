@@ -52,13 +52,11 @@ func handleInternalServerError(responseWriter http.ResponseWriter, err error) {
 
 // @Summary Get Thorough Totals
 // @Description Get throught totals
-// @Tags Users
+// @Tags Totals Votes
 // @Accept  json
 // @Produce  json
-// @Param   id     path   int     true  "User ID"
-// @Success 200 {object} map[string]interface{}
-// @Failure 404 {object} map[string]interface{}
-// @Router /users/{id} [get]
+// @Success 200 {object} ThoroughTotalsResponseModel
+// @Router /votes/thorough [get]
 func (controller *FrontendController) GetThoroughTotals(responseWriter http.ResponseWriter, request *http.Request) {
 	// Only allow GET requests
 	if request.Method != http.MethodGet {

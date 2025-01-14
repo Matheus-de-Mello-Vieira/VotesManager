@@ -39,6 +39,13 @@ func (controller *FrontendController) IndexHandler(responseWriter http.ResponseW
 	}
 }
 
+// @Summary Get Participants
+// @Description Responds with the list of participants
+// @Tags participants
+// @Accept json
+// @Produce json
+// @Success 200 {object} []domain.Participant
+// @Router /participants [get]
 func (controller *FrontendController) GetParticipantsHandler(responseWriter http.ResponseWriter, request *http.Request) {
 	if request.Method != http.MethodGet {
 		http.Error(responseWriter, "Method Not Allowed", http.StatusMethodNotAllowed)

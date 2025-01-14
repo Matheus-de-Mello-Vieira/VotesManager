@@ -2,6 +2,7 @@ package main
 
 import (
 	"bbb-voting/prodution-frontend/controller"
+	_ "bbb-voting/prodution-frontend/docs"
 	postgresqldatamapper "bbb-voting/voting-commons/data-layer/postgresql"
 	"context"
 	"embed"
@@ -9,6 +10,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 //go:embed view/static/*
@@ -33,6 +36,7 @@ func main() {
 	http.HandleFunc("/votes/thorough", frontendController.GetThoroughTotals)
 
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticFiles))))
+	http.Handle("/swagger/", httpSwagger.WrapHandler)
 
 	log.Println("Server is running on http://localhost:8081")
 	if err := http.ListenAndServe(":8081", nil); err != nil {
