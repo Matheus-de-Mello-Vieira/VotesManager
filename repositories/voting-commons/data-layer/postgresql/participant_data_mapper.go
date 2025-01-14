@@ -83,19 +83,19 @@ func (mapper ParticipantDataMapper) GetThoroughTotals(ctx context.Context) (*dom
 	}
 	defer dbpool.Close()
 
-	generalTotal, err1 := getGeneralTotal(dbpool, ctx)
-	if err1 != nil {
-		return nil, err1
+	generalTotal, err := getGeneralTotal(dbpool, ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	totalByParticipant, err2 := getVotesByParticipant(dbpool, ctx)
-	if err2 != nil {
-		return nil, err2
+	totalByParticipant, err := getVotesByParticipant(dbpool, ctx)
+	if err != nil {
+		return nil, err
 	}
 
-	totalByHour, err3 := getVotesByHour(dbpool, ctx)
-	if err3 != nil {
-		return nil, err3
+	totalByHour, err := getVotesByHour(dbpool, ctx)
+	if err != nil {
+		return nil, err
 	}
 
 	result := domain.ThoroughTotals{GeneralTotal: *generalTotal, TotalByHour: totalByHour, TotalByParticipant: totalByParticipant}

@@ -41,14 +41,14 @@ func (mapper MockedParticipantDataMapper) GetRoughTotals(ctx context.Context) (m
 }
 
 func (mapper MockedParticipantDataMapper) GetThoroughTotals(ctx context.Context) (*domain.ThoroughTotals, error) {
-	generalTotal, err1 := getGeneralTotal()
-	if err1 != nil {
-		return nil, err1
+	generalTotal, err := getGeneralTotal()
+	if err != nil {
+		return nil, err
 	}
 
-	totalByParticipant, err2 := getVotesByParticipant()
-	if err2 != nil {
-		return nil, err2
+	totalByParticipant, err := getVotesByParticipant()
+	if err != nil {
+		return nil, err
 	}
 
 	totalByHour, err3 := getVotesByHour()
