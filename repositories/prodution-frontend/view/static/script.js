@@ -2,9 +2,9 @@ const API_URL = "http://localhost:8081";
 
 document.addEventListener("DOMContentLoaded", async () => {
   const totals = await getTotals();
-  displayTotal(totals["GeneralTotal"]);
-  displayChartByHour(totals["TotalByHour"]);
-  displayChartByParticipant(totals["TotalByParticipant"]);
+  displayTotal(totals["general_total"]);
+  displayChartByHour(totals["total_by_hour"]);
+  displayChartByParticipant(totals["total_by_participant"]);
 });
 
 async function getTotals(retries = 3) {
@@ -39,8 +39,8 @@ function displayTotal(total) {
 }
 
 function displayChartByHour(totalByHour) {
-  const hours = totalByHour.map((x) => x["Hour"]);
-  const totals = totalByHour.map((x) => x["Total"]);
+  const hours = totalByHour.map((x) => x["hour"]);
+  const totals = totalByHour.map((x) => x["total"]);
 
   const data = {
     labels: hours,

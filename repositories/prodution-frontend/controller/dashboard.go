@@ -25,9 +25,9 @@ func NewFrontendController(participantRepository domain.ParticipantRepository, c
 }
 
 type ThoroughTotalsResponseModel struct {
-	GeneralTotal       int
-	TotalByHour        []domain.TotalByHour
-	TotalByParticipant map[string]int
+	GeneralTotal       int                  `json:"general_total"`
+	TotalByHour        []domain.TotalByHour `json:"total_by_hour"`
+	TotalByParticipant map[string]int       `json:"total_by_participant"`
 }
 
 func (controller *FrontendController) GetPage(responseWriter http.ResponseWriter, request *http.Request) {
@@ -50,6 +50,15 @@ func handleInternalServerError(responseWriter http.ResponseWriter, err error) {
 	log.Fatal(err)
 }
 
+// @Summary Get Thorough Totals
+// @Description Get throught totals
+// @Tags Users
+// @Accept  json
+// @Produce  json
+// @Param   id     path   int     true  "User ID"
+// @Success 200 {object} map[string]interface{}
+// @Failure 404 {object} map[string]interface{}
+// @Router /users/{id} [get]
 func (controller *FrontendController) GetThoroughTotals(responseWriter http.ResponseWriter, request *http.Request) {
 	// Only allow GET requests
 	if request.Method != http.MethodGet {
@@ -72,11 +81,8 @@ func (controller *FrontendController) GetThoroughTotals(responseWriter http.Resp
 	for participant, value := range content.TotalByParticipant {
 		responseModel.TotalByParticipant[participant.Name] = value
 	}
-	result, err1 := json.Marshal(responseModel)
-	if err1 != nil {
-		log.Printf("Error marshalling vote: %v", err1)
-		return
-	}
 
-	responseWriter.Write(result)
+	responseWriter.Header().Set("Content-Type", "application/json")
+	responseWriter.WriteHeader(http.StatusOK)
+	json.NewEncoder(responseWriter).Encode(responseModel)
 }

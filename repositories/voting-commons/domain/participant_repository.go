@@ -5,8 +5,8 @@ import (
 )
 
 type TotalByHour struct {
-	Total int
-	Hour  int
+	Total int `json:"total"`
+	Hour  int `json:"hour"`
 }
 type ThoroughTotals struct {
 	GeneralTotal       int
