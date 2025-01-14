@@ -58,7 +58,7 @@ func (mapper VoteDataMapperRedisDecorator) saveOneRedis(ctx context.Context, vot
 
 	pipeline.Incr(ctx, "count:total")
 
-	hourKey := vote.Timestamp.Format("2006010215")
+	hourKey := vote.Timestamp.Format("15")
 	pipeline.HIncrBy(ctx, "votes:by:hour", hourKey, 1)
 
 	return nil
