@@ -33,9 +33,10 @@ func main() {
 		),
 		context, templates,
 	)
-	http.HandleFunc("/votes/rough-totals", frontendController.GetVotesRoughTotalsHandler)
+	http.HandleFunc("/votes/totals/rough", frontendController.GetVotesRoughTotalsHandler)
 	http.HandleFunc("/votes", frontendController.PostVoteHandler)
 	http.HandleFunc("/", frontendController.IndexHandler)
+	http.HandleFunc("/pages/totals/rough", frontendController.LoadRoughTotalPage)
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticFiles))))
 
 	log.Println("Server is running on http://localhost:8080")

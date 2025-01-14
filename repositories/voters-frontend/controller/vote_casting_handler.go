@@ -65,22 +65,14 @@ func (controller *FrontendController) PostVoteHandler(responseWriter http.Respon
 	json.NewEncoder(responseWriter).Encode(vote)
 }
 
-func (controller *FrontendController) loadRoughTotalPage(responseWriter http.ResponseWriter) {
+func (controller *FrontendController) LoadRoughTotalPage(responseWriter http.ResponseWriter, request *http.Request) {
 	tmpl, err := template.ParseFS(controller.embedTemplates, "rough_results.html")
 	if err != nil {
 		handleInternalServerError(responseWriter, err)
 		return
 	}
 
-	totalsMap, err1 := controller.participantRepository.GetRoughTotals(controller.context)
-	if err1 != nil {
-		handleInternalServerError(responseWriter, err)
-		return
-	}
-
-	data := formatRoughTotals(totalsMap)
-
-	err = tmpl.Execute(responseWriter, data)
+	err = tmpl.Execute(responseWriter, nil)
 	if err != nil {
 		handleInternalServerError(responseWriter, err)
 	}
