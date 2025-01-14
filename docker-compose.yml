@@ -8,8 +8,10 @@ services:
       - "8081:8081"
     environment:
       - POSTGRESQL_URI=postgresql://postgres:example@postgres:5432/postgres
+      - REDIS_URL=redis://redis:6379
     depends_on:
       - postgres
+      - redis
 
   voters-frontend:
     build:
@@ -25,6 +27,7 @@ services:
     depends_on:
       - postgres
       - kafka
+      - redis
 
   voters-register:
     build:

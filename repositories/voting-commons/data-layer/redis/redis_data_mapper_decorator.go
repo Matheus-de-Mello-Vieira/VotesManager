@@ -13,6 +13,10 @@ type VoteDataMapperRedisDecorator struct {
 	base  domain.VoteRepository
 }
 
+func DecorateVoteDataMapperWithRedis(base domain.VoteRepository, redis redis.Client) VoteDataMapperRedisDecorator {
+	return VoteDataMapperRedisDecorator{redis, base}
+}
+
 func (mapper VoteDataMapperRedisDecorator) SaveOne(ctx context.Context, vote *domain.Vote) error {
 	pipeline := mapper.redis.Pipeline()
 

@@ -5,14 +5,16 @@ import (
 	_ "bbb-voting/voters-frontend/docs"
 	kafkadatamapper "bbb-voting/voting-commons/data-layer/kafka"
 	postgresqldatamapper "bbb-voting/voting-commons/data-layer/postgresql"
+	redisdatamapper "bbb-voting/voting-commons/data-layer/redis"
+	"bbb-voting/voting-commons/domain"
 	"context"
 	"embed"
+	"github.com/redis/go-redis/v9"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"io/fs"
 	"log"
 	"net/http"
 	"os"
-
-	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 //go:embed view/static/*
@@ -27,13 +29,21 @@ func main() {
 
 	context := context.Background()
 	postgresqlConnector := postgresqldatamapper.NewPostgresqlConnector(os.Getenv("POSTGRESQL_URI"))
+	redisClient := getRedisClient(os.Getenv("REDIS_URL"))
+
+	var participantRepository domain.ParticipantRepository = postgresqldatamapper.NewParticipantDataMapper(
+		postgresqlConnector,
+	)
+	participantRepository = redisdatamapper.DecorateParticipantDataMapperWithRedis(participantRepository, *redisClient)
+
+	var voteRepository domain.VoteRepository = kafkadatamapper.NewVoteDataMapper(
+		[]string{os.Getenv("KAFKA_URI")}, "votes", 30,
+	)
+	voteRepository = redisdatamapper.DecorateVoteDataMapperWithRedis(voteRepository, *redisClient)
+
 	frontendController := controller.NewFrontendController(
-		postgresqldatamapper.NewParticipantDataMapper(
-			postgresqlConnector,
-		),
-		kafkadatamapper.NewVoteDataMapper(
-			[]string{os.Getenv("KAFKA_URI")}, "votes", 30,
-		),
+		participantRepository,
+		voteRepository,
 		context, templates,
 	)
 	http.HandleFunc("/", frontendController.IndexHandler)
@@ -50,4 +60,12 @@ func main() {
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func getRedisClient(url string) *redis.Client {
+	opts, err := redis.ParseURL(url)
+	if err != nil {
+		log.Fatalf("Failed to parse Redis URL: %v", err)
+	}
+	return redis.NewClient(opts)
 }

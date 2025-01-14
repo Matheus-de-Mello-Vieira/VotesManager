@@ -1,12 +1,12 @@
 setup:
-	docker compose up -d postgres kafka
+	docker compose up -d postgres kafka redis
 	sleep 5
 
 	docker exec --workdir /bin/ -it kafka ./kafka-topics --bootstrap-server localhost:9092 --create --topic votes
 	docker exec postgres /bin/psql -h 127.0.0.1 -p 5432 -U postgres -d postgres -f ddl/script.sql
 	sleep 5
 
-	docker compose up prodution-frontend voters-frontend voters-register
+	docker compose up prodution-frontend voters-frontend voters-register --build
 
 refresh_rough_totals:
 	docker exec postgres /bin/psql -h 127.0.0.1 -p 5432 -U postgres -d postgres -c "REFRESH MATERIALIZED VIEW rough_totals"

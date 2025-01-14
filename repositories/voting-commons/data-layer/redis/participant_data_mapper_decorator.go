@@ -15,6 +15,10 @@ type ParticipantDataMapperRedisDecorator struct {
 	base  domain.ParticipantRepository
 }
 
+func DecorateParticipantDataMapperWithRedis(base domain.ParticipantRepository, redis redis.Client) ParticipantDataMapperRedisDecorator {
+	return ParticipantDataMapperRedisDecorator{redis, base}
+}
+
 func (mapper ParticipantDataMapperRedisDecorator) FindAll(ctx context.Context) ([]domain.Participant, error) {
 	return mapper.base.FindAll(ctx)
 }
