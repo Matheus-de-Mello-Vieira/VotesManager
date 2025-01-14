@@ -8,9 +8,6 @@ setup:
 
 	docker compose up prodution-frontend voters-frontend voters-register --build
 
-refresh_rough_totals:
-	docker exec postgres /bin/psql -h 127.0.0.1 -p 5432 -U postgres -d postgres -c "REFRESH MATERIALIZED VIEW rough_totals"
-
 unit_test:
 	( cd repositories ; go test ./... )
 

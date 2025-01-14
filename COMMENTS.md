@@ -1,39 +1,20 @@
 # Paredão BBB
 
-## Entendimento do problema
+## Tentativas
 
-* Devo criar uma interface WEB para isso
+### Primeira tentativa
 
-* os usuários não precisam estar logados
+Quando recebi o problema, eu pensei o seguinte:
 
-* >  o usuário precisa receber um panorama percentual os votos por candidato até aquele momento
+* Como o fluxo de votos é muito grande, e como no final de cada voto eu vou precisa dos resultados parciais, não é viável realizar esse cálculo múltiplas vezes. Além disso, a precisão dos dados não é um fator tão relevante assim.
+* Os dados que vão para a produção são muito menos requisitados, de forma que poderia ter um custo computacional maior e se tornar mais preciso.
 
-  * considerando o grande fluxo, se eu realizar a soma de todos os votos toda vez terei problemas de performance.
+Ai eu pensei nas seguintes soluções e foi descartando elas:
 
-* >  o programa não quer receber votos oriundos de uma máquina, apenas votos de pessoas
+1) ***\*armazenar o valor da soma total e atualizar toda vez que alguém votar\****: como seria poucos registros (um para cada participante) sendo atualizados pro milhares de agentes ao mesmo tempo, não seria algo viável devido a lentidão por locks.
+2) **armazenar o valor da soma total e atualizar periodicamente**: isso separaria a leitura e escrita, de forma a evitar locks entre esses dois, e tornaria o sistema muito mais rápido.
 
-  * colocar um CAPTCHA
-
-* ele precisa ser elástico (ter autoscaling)
-
-* `o total geral de votos, o total por participante e o total de votos por hora de cada paredão.`
-
-  * diferente do cálculo para o usuário, esse é muito menos frequente e precisa de maior precisão, viabilizando calcular na hora
-
-## Definições gerais
-
-#### a parte do panorama percentual toda vez que alguém vota (candidatos de soluções):
-
-1. **somar todos os votos toda vez que alguém votar**: como é uma rotina que seria invocada muito frequentemente, e eu precisaria de somar todos os votos que tem uma grande quantidade, realizar esses cálculos não seria algo viável.
-   * Além disso, essas chamadas provavelmente obteriam resultados parecidos para obter resultados muito parecidos, de forma que seria um processamento desnecessário.
-2. **armazenar o valor da soma total e atualizar toda vez que alguém votar**: como seria poucos registros (um para cada participante) sendo atualizados pro milhares de *threads* ao mesmo tempo, não seria algo viável devido a lentidão por *locks*.
-3. **armazenar o valor da soma total e atualizar periodicamente**: acredito que funcione, pois assim a função de votar vai apenas adicionar um registro, e a função de somar vai apenar ler eles.
-   * as *threads* responsáveis pela votação escrevem registros diferentes, então não teria necessidade de *locks* no banco de dados.
-   * a *thread* responsável pela soma vai apenas ler os registros escritos pelas *threads* da votação, de forma a eliminar a necessidade de *locks*
-     * isso inclusive me cheira o padrão **CQRS**
-   * como o resultado que eu preciso mostrar para o usuário já está pronto, a votação pode ser registrada de maneira assíncrona.
-
-Isso posto, eu vou adotar a solução 3, agora vou refinar ela:
+Ai eu pensei em refinamentos
 
 1. o sistema não precisa somar tudo, podemos simplesmente manter no banco de dados o registro da hora da última soma, e apenas completar a soma já existe com os registros feitos apartir dessa data 
    * O problema disso seriam dois:
@@ -47,102 +28,102 @@ Isso posto, eu vou adotar a solução 3, agora vou refinar ela:
        * se for usar transação, ele precisa ser *serializable*, pois qualquer nível de isolamento inferior causaria inconsistência
          * considerando o nível *repeatable read* que é um nível abaixo do *serializable* por permitir obtenção de resultados parciais de operações feitas por outros agentes ativos no momento que a transação foi iniciada (*Phanton*): se dois votos foram feitos ao mesmo tempo no inicio da transação, um pode entrar na soma e o outro não (que se perderá para sempre pelos motivos descritos acima).
 2. A mesma solução da 1, mas ao invés de data, usar uma chave primária serializado, de forma que a rotina somadora precisa apenas armazenar o id do último evento somado
-   * Apesar de ter superar a solução 1, ele pressupõe que seria viável um banco de dados estabelecer mais de 1000 conexões por segundos, principalmente porque eu pretendo testar o sistema na minha máquina local, então não teria tantos containers.
-   * Ao invés disso, poderíamos pensar em armazenar os dados agrupados por tempo e por candidato, ao invés de apenas armazenar os dados simples.
-     * A forma como agruparia vou abordar no próximo tema, do sistema de votação ficar assíncrono.
-     * mas esse agrupamento facilitaria também a parte do código para a produção do BBB, pois teria que somar muito menos dados
-3. ao invés disso, podemos usar um MATERIALIZED VIEW
+   * Apesar de ter superar a solução 1, ele pressupõe que seria viável um banco de dados estabelecer mais de 1000 conexões por segundos, principalmente porque eu pretendo testar o sistema na minha máquina local, então não teria tantos contêineres.
+3. A mesma solução da 1, mas poderíamos pensar em armazenar os dados agrupados por tempo e por candidato, ao invés de apenas armazenar os dados simples.
+  * esse agrupamento facilitaria também a parte do código para a produção do BBB, pois teria que somar muito menos dados
+  * Se for armazenar dados ao longo prazo, poderia agrupar esses dados em partições cada vez maiores de acordo com a distância dos dados com o presente. Ou seja, quanto mais ao passado iria, menor seria a precisão dos dados, mas menor seria o espaço necessário para o armazenamento.
 
-#### sistema assíncrono
+Dessa forma, eu pensei uma arquitetura os seguintes:
 
-1000 mensagens por segundo não é algo que se possa subestimar, e como eu quero testar o meu sistema na minha máquina, não teria como eu levantar 1000 threads aqui para rodar isso tudo. Ao invés disso, quando o usuário vota, o sistema vai apenas enfileirar isso.
-
-O serviço na ponta consumidora vai baixar várias mensagens ao mesmo tempo (para economizar o número de conexões com o kafka) e vai agrupar isso na memória e salvar no banco de dados com uma conexão só.
-
-Para evitar o uso de locks, e poder dar autoridade a memória local do sistema consumidor, eu gostaria que mensagens que seriam agrupadas no mesmo grupo não aparacerem em outras máquinas. Atualmente é possível implementar isso com o Kafka:
-
-*  O Kafka particiona as mensagens de acordo com o atributo `partition key`, mensagens com esse atributo iguais sempre vão para a mesma partição.
-* O Kafka garante que uma partição seja consumida apenas por um consumidor.
-* Então se eu colocar um `partition key` relativo aos agrupamentos que quero implementar, eu terei tudo que preciso.
-
-Outro ponto importante é que se esse principio de que não podemos ter 1000 conexões por segundo ao banco de dados para escrever os votos, em teoria também não poderia para obter os resultados parciais dos votos, de forma que fique inviável qualquer solução nesse sentido.
-
-* Talvez pensamos em sistemas escaláveis de cache, como o Redis
-
-#### Qual arquitetura usar
-
-Acredito que colocar todo o código em um serviço apenas não funcionaria pois tenho demandas com necessidade de escalonamento muito diferentes: um para lidar com os somatórios e outro para lidar com os registros das somas.
-
-Os requisitos me pedem páginas HTML e a linguagem GO, de forma que a última que única opção que tenho é criar APIs HTTP usando o GO que responda as páginas em HTML.
-
-Nesse sentido, eu penso em alguns serviços
-
-* **votersInterface**:
+* `PostgreSQL`: 
+  * armazenaria os dados brutos, os dados acumulados e os caches.
+* `voters-frontend`:
   * interface do usuário comum
     * isso implica uma interface http que responda html
-  * envia o registro de votação para a fila de votos
-  * "view" aqui tem um sentido de "telespectador da TV"
-* **votesRegister**:
-  * consumer da fila de votos
-  * ele registra no banco de dados
-
-* **votesAggregator**:
+  * envia o registro de votação diretamente ao banco de dados
+* `votes-aggregator`:
   * invocado pelo cron
   * periodicamente atualizar a soma que vai para os usuários
-  
-* **productionInterface**:
+* `prodution-frontend`:
   * interface da produção
   * executar as somas refinadas sob demanda da produção
 
-Além disso, eu precisaria de:
+A separação desses componentes foi os motivos para cada um escalar:
 
-* **um banco de dados**:
-  * armazenar o histórico de votos
-  * executar somas agrupadas
-  * suportar querys mais complexas
-* **um sistema de mensageria**:
-  * desacoplar o recebimento do voto do se registro no banco de dados
-  * evitar perda dos votos em momento de pico
+* `voters-frontend` precisaria escalar de acordo com o seu consumo de CPU
+* `votes-aggregator` precisaria escalar de maneira binária: ligando quando o cron o invoca, e desligando quando termina
+* `prodution-frontend` não precisaria de escalonamento, pois é consumido por um número limitado de clientes (a produção).
 
-#### Quais tecnologias usar
+O problema dessa solução que ela supõe que seria viável um banco de dados PostgreSQL sofrer escrita de milhares de agentes diferentes por segundo, que mesmo sem considerar os locks seria algo impossível.
 
-* Para lidar com isso, eu fiquei entre uma tecnologia tipo AWS Lambda, ou uma tecnologia de containers.
-  * a tecnologia do tipo lambda tem melhor escalabilidade, mas é mais cara e mais difícil de testar
-    * o problema disso é que seja quaisquer tecnologia que escolher, eu vou ficar preso a uma nuvem especifica (AWS, ou azure ou google)
-* Eu vou usar o kubernetes para gerenciamento das containers
-  * As principais núvens oferecem serviços para rodar o kubernetes, de forma que o sistema não ficaria limitado a um
-  * com o kubernetes eu posso configurar tanto o banco de dados, quanto os containers das aplicações
+### Segunda tentativa
 
-* O banco de dados que vou usar vai ser o PostgreSQL
-  * o PostgreSQL é o melhor banco de dados com transações open-source que conheço.
-* O sistema de fila que vou usar vai ser o Kafka
-  * os motivos falei acima, na parte do sistema assíncrono
+Afim de minimizar o número de conexões sofridas pelo banco (por enquanto apenas na parte da escrita), eu pensei em tornar as votações assíncronas: o `voters-frontend` enviaria para uma fila, ai o `votes-register` consumia várias votações e salvaria no banco de dados com uma única conexão.
 
-#### Arquitetura interna do código
+Eu pensei em calcular os dados acumulados dentro do `voters-frontend`, na seguinte maneira:
 
-Apesar de ser um sistema relativamente simples, que por se só não justificaria uma arquitetura sofisticada como é o caso da arquitetura limpa, eu vou usar ela (parcialmente) como forma de demostração das minhas habilidades.
+1) consumir `N` mensagens ou até um certo timeout
+
+2) somar de acordo com a partição do acumulo e salvar em uma estrutura de dados na memória.
+
+   * inicialmente estava pensando na partição de 30 segundos.
+
+   * a estrutura de dados deveria ser algo hibrido entre:
+     * um hash, devido o seu tempo esperado médio na busca ser $O(1)$ 
+     * uma lista circular: como não faz sentido armazenar dados muitos antigos na memória, uma lista circular eliminaria os dados mais antigos de maneira automática.
+
+   * Isso faz com que precise com que a memória interna do contêiner seja autoritativo a respeito das partições com as quais ele trabalhe. Ou seja, todas as mensagens de uma certa partição ir para apenas uma máquina especifica.
+
+3) Salvar no banco de dados em uma transação só, pois assim seria aberta apenas uma conexão com o banco de dados.
+
+4) Volte a etapa 1
+
+Dessa forma, como eu precisava que o contêiner seja autoritativo a respeito das partições com as quais ele trabalha, eu pensei em usar o Kafka, pois:
+
+* O Kafka particiona as mensagens de acordo com o atributo `partition key`, mensagens com esse atributo iguais sempre vão para a mesma partição.
+* O Kafka garante que uma partição seja consumida apenas por um consumidor.
+* Então se eu colocar um `partition key` relativo aos agrupamentos que quero implementar, eu terei tudo que preciso.
+
+Ai eu pensei nos mesmos componentes da primeira tentativa, mas com dois adicionais:
+
+* `kafka`
+* `votes-register`
+
+Entretanto, na realidade, ao invés de ter essa lógica de dados acumulados, eu usei apenas uma view materializada do SQL para armazenar as somas parciais. Essa solução é muito mais simples, mas tem o problema de sempre recalcular tudo novamente a cada refresh.
+
+Com isso, eu percebi que mesmo com as somas armazenadas no banco de dados o sistema ficaria suficientemente eficiente para suportar a demanda, pois ainda assim teríamos 1000 conexões sendo feitas ao segundo, mesmo que apenas leitura.
+
+### Terceira tentativa
+
+Para tornar as leituras viáveis, eu pensei em ferramentas de cache, ai eu pensei sobre o Redis por:
+
+* O Redis mantem todos os dados na memória, então é muito mais rápido que a view materializada que fica na memória estável do banco de dados.
+* O Redis é uma ferramenta feita para lidar com múltiplos agentes requisitando os dados ao mesmo tempo.
+
+O Redis faria o papel de armazenar as somas dos votos: toda vez que um voto fosse registrado, também seria somado 1 a soma toda de votos, a soma de votos do participante e a soma de votos da hora.
+
+O beneficio disso é que não preciso mais `votes-aggregator`, pois o Redis vai armazenar as somas atualizadas. Dessa forma, os componentes que pensei foram os mesmos da tentativa anterior, exceto `votes-aggregator`.
+
+## Estrutura do código
 
 Por questão simplicidade, eu vou manter tudo no mesmo repositório, mas seria interessante imaginar isso como sendo um projeto grande, distribuído em nesses repositórios:
 
-* `voting-commons`: códigos comuns entres os serviços, imagine isso enquanto uma biblioteca versionadada via CI/CD
-  * vai conter os datamappers para comunicar com o Kafka (pois é usado em 2 componentes) e os datamappers para comunicar com o Postgres (pois é usado por 3 componentes).
-
+* `voting-commons`: códigos comuns entres os serviços, imagine isso enquanto uma biblioteca versionada via CI/CD
+  
 * `voters-frontend`: responsável pela interface web dos telespectadores
 * `votes-register`: responsável por consumir a fila do Kafka e salvar os dados agrupados no banco de dados
-* `votes-aggregator`: responsável por periodicamente pegar os dados registrados pelo **votes-register** e salvar a soma atualizada
 * `prodution-frontend`: responsável pela interface dos telespectadores
+
+A estrutura interna do código é inspirada na arquitura limpa, onde teria uma camada de serviço que conhece a de domínio, e uma camada de dados que conhece a de serviço e a de domínio.
+
+* Vale destacar o papel que inversão de dependência fez, principalmente a camada de dados, que ao longo das tentativas eu só precisei adicionar novo código e não modicar o já existente, ou me deu muito menos trabalho.
 
 ## Coisas que implementaria se tivesse tempo
 
-* No sistema existe uma relação no banco de dados agrupados por tempo, seria interessante começar agrupar os agrupamentos mais antigos, de forma a economizar espaço no disco. Poderia ser algo como: dados com mais de 2 semanas se agrupam por hora e com mais de 1 mês se agrupa por dia.
 * Separa os repositórios e os módulos
   * incluir o `voting-commons` em algum repositório de artefatos, de forma que cada componente pode puxar uma versão diferente dele.
-* imagens dos participantes
-* criação de um pipeline CI/CD
+* incluir imagens aos participantes
+*  criação de um pipeline CI/CD
   * SonarQube
-* implementar o recaptcha
-* Um mecanismo de consistência usando o sistema de commit do Kafka
-  * ao invés de fazer o `votesAggregator`, eu acabei fazendo um view materializada no postgresl, mas faltou configurar alguma coisa para executar o comando `REFRESH MATERIALIZED VIEW rough_totals`
-* `votes-register`: fazer a maioria das coisas que faço no `main.go` no `service/event_consumer.go`, através de inversão de dependência.
-* Implementei os testes de carga, mas eles falharam pois ainda não consegui implementar o escalonamento
-  * seria necessário um loadbalancer para distribui as cargas os containers do `voters-frontend`, além de configurar a escabilidade do kafka
+* implementar realmente o recaptcha
+* usar um loadbalancer e configurar escalabilidade horizontal dos componentes

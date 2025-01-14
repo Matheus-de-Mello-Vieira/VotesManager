@@ -46,12 +46,12 @@ func (mapper VoteDataMapperRedisDecorator) SaveMany(ctx context.Context, votes [
 }
 
 func (mapper VoteDataMapperRedisDecorator) saveOneRedis(ctx context.Context, vote *domain.Vote, pipeline redis.Pipeliner) error {
-	voteKey := fmt.Sprint("vote:", vote.VoteID)
-	pipeline.HMSet(ctx, voteKey, map[string]interface{}{
-		"id":             vote.VoteID,
-		"participant_id": vote.Participant.ParticipantID,
-		"timestamp":      vote.Timestamp.Unix(),
-	})
+	// voteKey := fmt.Sprint("vote:", vote.VoteID)
+	// pipeline.HMSet(ctx, voteKey, map[string]interface{}{
+	// 	"id":             vote.VoteID,
+	// 	"participant_id": vote.Participant.ParticipantID,
+	// 	"timestamp":      vote.Timestamp.Unix(),
+	// })
 
 	participantCountKey := fmt.Sprint("count:participant:", vote.Participant.ParticipantID)
 	pipeline.Incr(ctx, participantCountKey)
