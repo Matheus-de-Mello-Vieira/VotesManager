@@ -52,6 +52,6 @@ func (controller *FrontendController) GetParticipants(responseWriter http.Respon
 	}
 
 	responseWriter.Header().Set("Content-Type", "application/json")
-	responseWriter.WriteHeader(http.StatusCreated)
+	responseWriter.WriteHeader(http.StatusOK)
 	json.NewEncoder(responseWriter).Encode(participants)
 }
