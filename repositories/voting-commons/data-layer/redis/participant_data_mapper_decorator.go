@@ -10,19 +10,56 @@ import (
 )
 
 type ParticipantDataMapperRedisDecorator struct {
-	redis redis.Client
-	base  domain.ParticipantRepository
+	redis            redis.Client
+	base             domain.ParticipantRepository
+	participantsById map[int]domain.Participant
+	participants     []domain.Participant
 }
 
 func DecorateParticipantDataMapperWithRedis(base domain.ParticipantRepository, redis redis.Client) ParticipantDataMapperRedisDecorator {
-	return ParticipantDataMapperRedisDecorator{redis, base}
+	return ParticipantDataMapperRedisDecorator{redis, base, nil, nil}
 }
 
 func (mapper ParticipantDataMapperRedisDecorator) FindAll(ctx context.Context) ([]domain.Participant, error) {
-	return mapper.base.FindAll(ctx)
+	var err error
+	if mapper.participants == nil {
+		mapper.participants, err = mapper.base.FindAll(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return mapper.participants, nil
 }
 func (mapper ParticipantDataMapperRedisDecorator) FindByID(ctx context.Context, id int) (*domain.Participant, error) {
-	return mapper.base.FindByID(ctx, id)
+	participantById, err := mapper.getParticipantById(ctx)
+	if err != nil {
+		return nil, err
+	}
+	participant := participantById[id]
+	return &participant, nil
+}
+func (mapper ParticipantDataMapperRedisDecorator) getParticipantById(ctx context.Context) (map[int]domain.Participant, error) {
+	var err error
+	if mapper.participantsById == nil {
+		mapper.participantsById, err = mapper.fetchParticipantById(ctx)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return mapper.participantsById, nil
+}
+func (mapper ParticipantDataMapperRedisDecorator) fetchParticipantById(ctx context.Context) (map[int]domain.Participant, error) {
+	participants, err := mapper.FindAll(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	result := map[int]domain.Participant{}
+	for _, participant := range participants {
+		result[participant.ParticipantID] = participant
+	}
+
+	return result, nil
 }
 
 func (mapper ParticipantDataMapperRedisDecorator) GetRoughTotals(ctx context.Context) (map[domain.Participant]int, error) {
@@ -51,7 +88,7 @@ func (mapper ParticipantDataMapperRedisDecorator) GetThoroughTotals(ctx context.
 }
 
 func (mapper ParticipantDataMapperRedisDecorator) getGeneralTotal(ctx context.Context) (*int, error) {
-	resultStr, err := mapper.redis.Get(ctx, "count:total").Result()
+	resultStr, err := mapper.redis.Get(ctx, "votes:total").Result()
 	if err != nil {
 		return nil, err
 	}
@@ -59,41 +96,30 @@ func (mapper ParticipantDataMapperRedisDecorator) getGeneralTotal(ctx context.Co
 	return &result, err
 }
 func (mapper ParticipantDataMapperRedisDecorator) getVotesByParticipant(ctx context.Context) (map[domain.Participant]int, error) {
-	participants, err := mapper.FindAll(ctx)
+	participantsIdByVotes, err := mapper.redis.HGetAll(ctx, "votes:by:participant").Result()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to get votes by participant: %w", err)
 	}
 
 	result := map[domain.Participant]int{}
-	for _, participant := range participants {
-		count, err := mapper.getCountOfParticipant(ctx, participant.ParticipantID)
-
+	for participantIdStr, voteStr := range participantsIdByVotes {
+		participantId, err := strconv.Atoi(participantIdStr)
+		if err != nil {
+			return nil, err
+		}
+		vote, err := strconv.Atoi(voteStr)
 		if err != nil {
 			return nil, err
 		}
 
-		result[participant] = *count
+		participant, err := mapper.FindByID(ctx, participantId)
+		if err != nil {
+			return nil, err
+		}
+		result[*participant] = vote
 	}
 
 	return result, nil
-}
-func (mapper ParticipantDataMapperRedisDecorator) getCountOfParticipant(ctx context.Context, participantId int) (*int, error) {
-	key := fmt.Sprint("count:participant:", participantId)
-
-	countStr, err := mapper.redis.Get(ctx, key).Result()
-	if err != nil {
-		if err == redis.Nil { // don't exists
-			count := 0
-			return &count, nil
-		}
-		return nil, err
-	}
-	count, err := strconv.Atoi(countStr)
-	if err != nil {
-		return nil, err
-	}
-
-	return &count, nil
 }
 
 func (mapper ParticipantDataMapperRedisDecorator) getVotesByHour(ctx context.Context) ([]domain.TotalByHour, error) {
