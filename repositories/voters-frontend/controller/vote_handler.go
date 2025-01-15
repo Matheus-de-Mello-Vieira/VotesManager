@@ -53,7 +53,7 @@ type postVoteBodyModel struct {
 // @Accept  json
 // @Produce  json
 // @Body postVoteBodyModel
-// @Success 200 {object} domain.Vote
+// @Success 201 {object} domain.Vote
 // @Router /votes [post]
 func (controller *FrontendController) PostVoteHandler(responseWriter http.ResponseWriter, request *http.Request) {
 	if request.Method != http.MethodPost {

@@ -1,10 +1,10 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
-	net_url "net/url"
-	"strings"
 	"sync"
 	"time"
 )
@@ -47,15 +47,22 @@ func main() {
 func sendRequest() {
 	client := &http.Client{}
 
-	data := net_url.Values{}
-	data.Set("id", "1")
-	req, err := http.NewRequest("POST", "http://localhost:8080/votes", strings.NewReader(data.Encode()))
+	data := map[string]interface{}{
+		"participant_id": 1,
+	}
+	jsonData, err := json.Marshal(data)
+	if err != nil {
+		fmt.Println("Error marshaling JSON:", err)
+		return
+	}
+
+	req, err := http.NewRequest("POST", "http://localhost:8080/votes", bytes.NewBuffer(jsonData))
 	if err != nil {
 		fmt.Printf("Error creating request: %v\n", err)
 		return
 	}
-	
-	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+
+	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := client.Do(req)
 	if err != nil {

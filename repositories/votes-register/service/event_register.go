@@ -35,7 +35,10 @@ func (register *VoteRegister) Start() {
 		if len(votesBulk) != 0 {
 			log.Printf("Received %d votes", len(votesBulk))
 		}
-		register.voteRepository.SaveMany(*register.ctx, votesBulk)
+		err = register.voteRepository.SaveMany(*register.ctx, votesBulk)
+		if err != nil {
+			log.Println("erro on save: %w")
+		}
 	}
 }
 
