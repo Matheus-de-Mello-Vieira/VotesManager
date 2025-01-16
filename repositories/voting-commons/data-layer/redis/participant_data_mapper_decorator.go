@@ -16,50 +16,30 @@ type ParticipantDataMapperRedisDecorator struct {
 	participants     []domain.Participant
 }
 
-func DecorateParticipantDataMapperWithRedis(base domain.ParticipantRepository, redis redis.Client) ParticipantDataMapperRedisDecorator {
-	return ParticipantDataMapperRedisDecorator{redis, base, nil, nil}
-}
-
-func (mapper ParticipantDataMapperRedisDecorator) FindAll(ctx context.Context) ([]domain.Participant, error) {
-	var err error
-	if mapper.participants == nil {
-		mapper.participants, err = mapper.base.FindAll(ctx)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return mapper.participants, nil
-}
-func (mapper ParticipantDataMapperRedisDecorator) FindByID(ctx context.Context, id int) (*domain.Participant, error) {
-	participantById, err := mapper.getParticipantById(ctx)
+func DecorateParticipantDataMapperWithRedis(base domain.ParticipantRepository, redis redis.Client, ctx context.Context) (*ParticipantDataMapperRedisDecorator, error) {
+	participants, err := base.FindAll(ctx)
 	if err != nil {
 		return nil, err
 	}
-	participant := participantById[id]
-	return &participant, nil
-}
-func (mapper ParticipantDataMapperRedisDecorator) getParticipantById(ctx context.Context) (map[int]domain.Participant, error) {
-	var err error
-	if mapper.participantsById == nil {
-		mapper.participantsById, err = mapper.fetchParticipantById(ctx)
-		if err != nil {
-			return nil, err
-		}
-	}
-	return mapper.participantsById, nil
-}
-func (mapper ParticipantDataMapperRedisDecorator) fetchParticipantById(ctx context.Context) (map[int]domain.Participant, error) {
-	participants, err := mapper.FindAll(ctx)
-	if err != nil {
-		return nil, err
-	}
+	participantsById := assemblyParticipantById(participants)
 
+	return &ParticipantDataMapperRedisDecorator{redis: redis, base: base, participantsById: participantsById, participants: participants}, nil
+}
+func assemblyParticipantById(participants []domain.Participant) map[int]domain.Participant {
 	result := map[int]domain.Participant{}
 	for _, participant := range participants {
 		result[participant.ParticipantID] = participant
 	}
 
-	return result, nil
+	return result
+}
+
+func (mapper ParticipantDataMapperRedisDecorator) FindAll(ctx context.Context) ([]domain.Participant, error) {
+	return mapper.participants, nil
+}
+func (mapper ParticipantDataMapperRedisDecorator) FindByID(ctx context.Context, id int) (*domain.Participant, error) {
+	participant := mapper.participantsById[id]
+	return &participant, nil
 }
 
 func (mapper ParticipantDataMapperRedisDecorator) GetRoughTotals(ctx context.Context) (map[domain.Participant]int, error) {

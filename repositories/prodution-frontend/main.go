@@ -27,18 +27,22 @@ func main() {
 	var templates, _ = fs.Sub(templatesFull, "view/templates")
 	var staticFiles, _ = fs.Sub(staticFilesFull, "view/static")
 
-	context := context.Background()
+	ctx := context.Background()
 	postgresqlConnector := postgresqldatamapper.NewPostgresqlConnector(os.Getenv("POSTGRESQL_URI"))
 	redisClient := getRedisClient(os.Getenv("REDIS_URL"))
 
 	var participantRepository domain.ParticipantRepository = postgresqldatamapper.NewParticipantDataMapper(
 		postgresqlConnector,
 	)
-	participantRepository = redisdatamapper.DecorateParticipantDataMapperWithRedis(participantRepository, *redisClient)
+	var err error
+	participantRepository, err = redisdatamapper.DecorateParticipantDataMapperWithRedis(participantRepository, *redisClient, ctx)
+	if err != nil {
+		log.Fatalf("Faled to load cache: %s", err)
+	}
 
 	frontendController := controller.NewFrontendController(
 		participantRepository,
-		context, templates,
+		ctx, templates,
 	)
 	http.HandleFunc("/", frontendController.GetPage)
 	http.HandleFunc("/votes/totals/thorough", frontendController.GetThoroughTotals)
