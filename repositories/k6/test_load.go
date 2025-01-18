@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"sync"
 	"sync/atomic"
@@ -17,6 +18,11 @@ const (
 )
 
 func main() {
+	transport := &http.Transport{
+		MaxIdleConnsPerHost: 1000, // Set the desired value
+	}
+	client := &http.Client{Transport: transport}
+
 	// WaitGroup to synchronize goroutines
 	var wg sync.WaitGroup
 
@@ -39,39 +45,73 @@ func main() {
 			fmt.Println("Load test completed.")
 			fmt.Printf("Sucess: %d\n", successCount)
 			fmt.Printf("Total: %d\n", totalCount)
+			fmt.Printf("Total: %.2f%%\n", float64(successCount)/float64(totalCount) * 100)
 			return
 		case <-ticker.C:
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
 				atomic.AddInt64(&totalCount, 1)
-				if simulateVote() {
+				if testAllFlow(client) {
 					atomic.AddInt64(&successCount, 1)
 				}
 			}()
 		}
 	}
 }
+func testAllFlow(client *http.Client) bool {
+	if !testHtmlPage(client, "/") {
+		return false
+	}
 
-func simulateVote() bool {
-	client := &http.Client{}
+	if !testRestRequest(client, "GET", "/participants", nil) {
+		return false
+	}
 
-	data := map[string]interface{}{
+	// if !simulateVote(client) {
+	// 	return false
+	// }
+
+	if !testHtmlPage(client, "/pages/totals/rough") {
+		return false
+	}
+
+	if !testRestRequest(client, "GET", "/votes/totals/rough", nil) {
+		return false
+	}
+
+	return true
+}
+
+func simulateVote(client *http.Client) bool {
+	body := map[string]interface{}{
 		"participant_id": 1,
 	}
-	jsonData, err := json.Marshal(data)
+	return testRestRequest(client, "POST", "/votes", body)
+}
+
+func testHtmlPage(client *http.Client, route string) bool {
+	return testRequest(client, "GET", route, nil, "text/html")
+}
+
+func testRestRequest(client *http.Client, verb string, route string, body map[string]any) bool {
+	jsonData, err := json.Marshal(body)
 	if err != nil {
 		fmt.Println("Error marshaling JSON:", err)
 		return false
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprint(url, "/votes"), bytes.NewBuffer(jsonData))
+	return testRequest(client, verb, route, bytes.NewBuffer(jsonData), "application/json")
+}
+
+func testRequest(client *http.Client, verb string, route string, body io.Reader, contentType string) bool {
+	req, err := http.NewRequest(verb, fmt.Sprint(url, route), body)
 	if err != nil {
 		fmt.Printf("Error creating request: %v\n", err)
 		return false
 	}
 
-	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Type", contentType)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -79,9 +119,6 @@ func simulateVote() bool {
 		return false
 	}
 	defer resp.Body.Close()
-
-	// Log the response status
-	fmt.Printf("Response status: %d\n", resp.StatusCode)
 
 	return resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusCreated
 }

@@ -1,10 +1,19 @@
 setup:
-	docker compose up -d postgres kafka redis
+	$(MAKE) setup_depedencies
 	sleep 10
 
 	docker exec --workdir /bin/ -it kafka ./kafka-topics --bootstrap-server localhost:9092 --create --topic votes
 	docker exec postgres /bin/psql -h 127.0.0.1 -p 5432 -U postgres -d postgres -f ddl/script.sql
 
+	$(MAKE) setup_main
+
+tear_down:
+	docker compose down
+
+setup_depedencies:
+	docker compose up -d postgres kafka redis
+
+setup_main:
 	docker compose up prodution-frontend voters-frontend voters-register --build
 
 unit_test:
@@ -13,8 +22,7 @@ unit_test:
 load_test:
 	( cd repositories ; go run k6/test_load.go )
 
-up_depedencies:
-	docker compose up -d postgres kafka
+
 
 GOPATH = $(shell cd repositories ; go env GOPATH)
 swagger:
