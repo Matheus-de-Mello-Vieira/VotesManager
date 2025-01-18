@@ -23,7 +23,7 @@ var _ = Describe("ParticipantsController", func() {
 	)
 	BeforeEach(func() {
 		ctx = context.Background()
-		controller = NewFrontendController(mocksdatamappers.MockedParticipantDataMapper{}, mocksdatamappers.MockedVotesDataMapper{}, ctx, os.DirFS("../view/templates/"))
+		controller = NewFrontendController(mocksdatamappers.MockedParticipantDataMapper{}, mocksdatamappers.MockedVotesDataMapper{}, ctx, os.DirFS("../view/templates/"), os.DirFS("../view/static/"))
 	})
 
 	Describe("GetParticipantsHandler", func() {

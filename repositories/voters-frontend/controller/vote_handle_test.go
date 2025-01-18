@@ -27,7 +27,7 @@ var _ = Describe("VotesController", func() {
 	BeforeEach(func() {
 		ctx = context.Background()
 		participantRepository = mocksdatamappers.MockedParticipantDataMapper{}
-		controller = NewFrontendController(participantRepository, mocksdatamappers.MockedVotesDataMapper{}, ctx, os.DirFS("../view/templates/"))
+		controller = NewFrontendController(participantRepository, mocksdatamappers.MockedVotesDataMapper{}, ctx, os.DirFS("../view/templates/"), os.DirFS("../view/static/"))
 	})
 
 	Describe("GetVotesRoughTotalsHandler", func() {

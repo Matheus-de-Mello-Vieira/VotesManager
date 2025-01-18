@@ -21,7 +21,7 @@ func (controller *FrontendController) GetVotesRoughTotalsHandler(responseWriter 
 		return
 	}
 
-	totalsMap, err := controller.participantRepository.GetRoughTotals(controller.context)
+	totalsMap, err := controller.participantRepository.GetRoughTotals(controller.ctx)
 	if err != nil {
 		handleInternalServerError(responseWriter, err)
 		return
@@ -64,7 +64,7 @@ func (controller *FrontendController) PostVoteHandler(responseWriter http.Respon
 	body := postVoteBodyModel{}
 	loadBody(responseWriter, request, &body)
 
-	participant, _ := controller.participantRepository.FindByID(controller.context, body.ParticipantID)
+	participant, _ := controller.participantRepository.FindByID(controller.ctx, body.ParticipantID)
 
 	if participant == nil {
 		http.Error(responseWriter, "Participant not found", http.StatusNotFound)
@@ -73,7 +73,7 @@ func (controller *FrontendController) PostVoteHandler(responseWriter http.Respon
 
 	vote := domain.Vote{Participant: *participant, Timestamp: time.Now()}
 
-	controller.voteRepository.SaveOne(controller.context, &vote)
+	controller.voteRepository.SaveOne(controller.ctx, &vote)
 
 	responseWriter.Header().Set("Content-Type", "application/json")
 	responseWriter.WriteHeader(http.StatusCreated)

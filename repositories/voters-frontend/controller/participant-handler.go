@@ -1,29 +1,10 @@
 package controller
 
 import (
-	"bbb-voting/voting-commons/domain"
-	"context"
 	"encoding/json"
 	"html/template"
-	"io/fs"
 	"net/http"
 )
-
-type FrontendController struct {
-	participantRepository domain.ParticipantRepository
-	voteRepository        domain.VoteRepository
-	context               context.Context
-	embedTemplates        fs.FS
-}
-
-func NewFrontendController(participantRepository domain.ParticipantRepository, voteRepository domain.VoteRepository, context context.Context, embedTemplates fs.FS) FrontendController {
-	return FrontendController{
-		participantRepository: participantRepository,
-		voteRepository:        voteRepository,
-		context:               context,
-		embedTemplates:        embedTemplates,
-	}
-}
 
 // @Summary Serve HTML index page
 // @Description Responds with an HTML page with the index page
@@ -58,7 +39,7 @@ func (controller *FrontendController) GetParticipantsHandler(responseWriter http
 		return
 	}
 
-	participants, err := controller.participantRepository.FindAll(controller.context)
+	participants, err := controller.participantRepository.FindAll(controller.ctx)
 	if err != nil {
 		handleInternalServerError(responseWriter, err)
 		return

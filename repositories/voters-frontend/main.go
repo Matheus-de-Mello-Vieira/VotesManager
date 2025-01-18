@@ -2,19 +2,18 @@ package main
 
 import (
 	"bbb-voting/voters-frontend/controller"
-	_ "bbb-voting/voters-frontend/docs"
 	kafkadatamapper "bbb-voting/voting-commons/data-layer/kafka"
 	postgresqldatamapper "bbb-voting/voting-commons/data-layer/postgresql"
 	redisdatamapper "bbb-voting/voting-commons/data-layer/redis"
 	"bbb-voting/voting-commons/domain"
 	"context"
 	"embed"
-	"github.com/redis/go-redis/v9"
-	httpSwagger "github.com/swaggo/http-swagger"
 	"io/fs"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/redis/go-redis/v9"
 )
 
 //go:embed view/static/*
@@ -34,7 +33,7 @@ func main() {
 	var participantRepository domain.ParticipantRepository = postgresqldatamapper.NewParticipantDataMapper(
 		postgresqlConnector,
 	)
-	var err error;
+	var err error
 	participantRepository, err = redisdatamapper.DecorateParticipantDataMapperWithRedis(participantRepository, *redisClient, ctx)
 	if err != nil {
 		log.Fatalf("Faled to load cache: %s", err)
@@ -48,20 +47,13 @@ func main() {
 	frontendController := controller.NewFrontendController(
 		participantRepository,
 		voteRepository,
-		ctx, templates,
+		ctx, templates, staticFiles,
 	)
-	http.HandleFunc("/", frontendController.IndexHandler)
-	http.HandleFunc("/pages/totals/rough", frontendController.LoadRoughTotalPage)
 
-	http.HandleFunc("/votes", frontendController.PostVoteHandler)
-	http.HandleFunc("/participants", frontendController.GetParticipantsHandler)
-	http.HandleFunc("/votes/totals/rough", frontendController.GetVotesRoughTotalsHandler)
-
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticFiles))))
-	http.Handle("/swagger/", httpSwagger.WrapHandler)
+	serverMux := frontendController.GetServerMux()
 
 	log.Println("Server is running on http://localhost:8080")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe(":8080", serverMux); err != nil {
 		log.Fatal(err)
 	}
 }

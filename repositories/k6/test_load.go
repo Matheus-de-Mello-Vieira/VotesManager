@@ -45,7 +45,7 @@ func main() {
 			fmt.Println("Load test completed.")
 			fmt.Printf("Sucess: %d\n", successCount)
 			fmt.Printf("Total: %d\n", totalCount)
-			fmt.Printf("Total: %.2f%%\n", float64(successCount)/float64(totalCount) * 100)
+			fmt.Printf("Total: %.2f%%\n", float64(successCount)/float64(totalCount)*100)
 			return
 		case <-ticker.C:
 			wg.Add(1)
