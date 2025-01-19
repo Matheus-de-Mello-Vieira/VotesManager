@@ -44,17 +44,38 @@ func main() {
 		participantRepository,
 		ctx, templates,
 	)
-	http.HandleFunc("/", frontendController.GetPage)
-	http.HandleFunc("/votes/totals/thorough", frontendController.GetThoroughTotals)
 
-	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticFiles))))
-	http.Handle("/swagger/", httpSwagger.WrapHandler)
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", frontendController.GetPage)
+	mux.HandleFunc("/votes/totals/thorough", frontendController.GetThoroughTotals)
+
+	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticFiles))))
+	mux.Handle("/swagger/", httpSwagger.WrapHandler)
 
 	log.Println("Server is running on http://localhost:8081")
-	if err := http.ListenAndServe(":8081", nil); err != nil {
+	if err := http.ListenAndServe(":8081", corsMiddleware(mux)); err != nil {
 		log.Fatal(err)
 	}
 }
+
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Set CORS headers
+		w.Header().Set("Access-Control-Allow-Origin", "*") // Allow all origins; restrict as needed
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+
+		// Handle preflight OPTIONS requests
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		// Call the next handler
+		next.ServeHTTP(w, r)
+	})
+}
+
 
 func getRedisClient(url string) *redis.Client {
 	opts, err := redis.ParseURL(url)

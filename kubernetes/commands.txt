@@ -27,11 +27,16 @@ kubectl exec -it $postgresPod -- psql -U postgres -d postgres -f ddl/script.sql
 kubectl exec -it $kafkaPod -- kafka-topics --bootstrap-server localhost:9092 --create --topic votes
 
 kubectl apply -f kubernetes/voters-frontend.yaml
+kubectl apply -f kubernetes/prodution-frontend.yaml
+kubectl apply -f kubernetes/votes-register.yaml
 
-
+kubectl wait --for=condition=Ready pod/$(kubectl get pods -l app=voters-frontend --no-headers -o custom-columns=":metadata.name")
+kubectl wait --for=condition=Ready pod/$(kubectl get pods -l app=prodution-frontend --no-headers -o custom-columns=":metadata.name")
+kubectl wait --for=condition=Ready pod/$(kubectl get pods -l app=votes-register --no-headers -o custom-columns=":metadata.name")
 # %%
 
-kubectl delete -f voters-frontend.yaml
+kubectl delete -f kubernetes/voters-frontend.yaml
+kubectl delete -f kubernetes/votes-register.yaml
 
 # %%
 
@@ -42,13 +47,24 @@ kubectl delete pv --all
 # %%
 
 (eval $(minikube docker-env) && docker build -t voters-frontend:latest --build-arg MAIN_PATH="voters-frontend/main.go" . )
-kubectl rollout restart deployment voters-frontend 
+kubectl rollout restart deployment voters-frontend
 
-kubectl set image deployment/voters-frontend voters-frontend=voters-frontend:latest
+
+(eval $(minikube docker-env) && docker build -t prodution-frontend:latest --build-arg MAIN_PATH="prodution-frontend/main.go" . )
+kubectl rollout restart deployment prodution-frontend
+
+(eval $(minikube docker-env) && docker build -t votes-register:latest --build-arg MAIN_PATH="votes-register/main.go" . )
+kubectl rollout restart deployment votes-register
 # %%
 
 minikube service voters-frontend --url
 
+minikube service prodution-frontend --url
 # %%
 
 kubectl logs $(kubectl get pods -l app=voters-frontend --no-headers -o custom-columns=":metadata.name") --previous
+kubectl logs $(kubectl get pods -l app=prodution-frontend --no-headers -o custom-columns=":metadata.name") --previous
+kubectl logs $(kubectl get pods -l app=votes-register --no-headers -o custom-columns=":metadata.name") --previous
+
+# %%
+kubectl exec -it $postgresPod -- psql -U postgres -d postgres -c 'select count(*) from votes;'

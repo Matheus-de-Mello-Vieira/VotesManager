@@ -27,6 +27,8 @@ spec:
           value: PLAINTEXT://:9092
         - name: KAFKA_ADVERTISED_LISTENERS
           value: PLAINTEXT://kafka-broker:9092
+        - name: KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR
+          value: "1"
 ---
 apiVersion: v1
 kind: Service

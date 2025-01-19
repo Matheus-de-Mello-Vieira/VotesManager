@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	url            = "http://localhost:8080"
+	url            = "http://10.109.68.105:8080"
 	requestsPerSec = 1000
 	duration       = 10 * time.Second
 )
@@ -105,7 +105,7 @@ func testRestRequest(client *http.Client, verb string, route string, body map[st
 }
 
 func testRequest(client *http.Client, verb string, route string, body io.Reader, contentType string) bool {
-	req, err := http.NewRequest(verb, fmt.Sprint(url, route), body)
+	req, err := http.NewRequest(verb, fmt.Sprint(url, "/", route), body)
 	if err != nil {
 		fmt.Printf("Error creating request: %v\n", err)
 		return false

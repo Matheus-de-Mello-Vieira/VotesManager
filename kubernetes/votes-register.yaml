@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: votes-register
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: votes-register
+  template:
+    metadata:
+      labels:
+        app: votes-register
+    spec:
+      containers:
+        - name: votes-register
+          image: votes-register:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: POSTGRESQL_URI
+              value: "postgresql://postgres:example@postgres:5432/postgres"
+            - name: KAFKA_URI
+              value: "kafka-broker:9092"

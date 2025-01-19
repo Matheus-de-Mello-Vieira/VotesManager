@@ -1,5 +1,3 @@
-const API_URL = "http://localhost:8081";
-
 document.addEventListener("DOMContentLoaded", async () => {
   const totals = await getTotals();
   displayTotal(totals["general_total"]);
@@ -8,7 +6,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 async function getTotals(retries = 3) {
-  return await makeRequest(`${API_URL}/votes/totals/thorough`, retries)
+  return await makeRequest(`/votes/totals/thorough`, retries)
 }
 
 async function makeRequest(url, retries = 3) {
