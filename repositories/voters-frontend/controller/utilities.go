@@ -30,7 +30,7 @@ func NewFrontendController(participantRepository domain.ParticipantRepository, v
 	}
 }
 
-func (frontendController *FrontendController) GetServerMux() *http.ServeMux {
+func (frontendController *FrontendController) GetServerMux() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", frontendController.IndexHandler)
 	mux.HandleFunc("/pages/totals/rough", frontendController.LoadRoughTotalPage)
@@ -42,10 +42,26 @@ func (frontendController *FrontendController) GetServerMux() *http.ServeMux {
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(frontendController.embedStatic))))
 	mux.Handle("/swagger/", httpSwagger.WrapHandler)
 
-	return mux
+	return corsMiddleware(mux)
 }
 
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Set CORS headers
+		w.Header().Set("Access-Control-Allow-Origin", "*") // Allow all origins; restrict as needed
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
+		// Handle preflight OPTIONS requests
+		if r.Method == http.MethodOptions {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+
+		// Call the next handler
+		next.ServeHTTP(w, r)
+	})
+}
 
 func loadBody(responseWriter http.ResponseWriter, request *http.Request, contentBody any) {
 	bytesBody, err := io.ReadAll(request.Body)

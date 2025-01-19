@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: voters-frontend
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: voters-frontend
+  template:
+    metadata:
+      labels:
+        app: voters-frontend
+    spec:
+      containers:
+        - name: voters-frontend
+          image: voters-frontend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: POSTGRESQL_URI
+              value: "postgresql://postgres:example@postgres:5432/postgres"
+            - name: REDIS_URL
+              value: "redis://redis:6379"
+            - name: KAFKA_URI
+              value: "kafka-broker:9092"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: voters-frontend
+  namespace: default
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      targetPort: 8080
+  selector:
+    app: voters-frontend

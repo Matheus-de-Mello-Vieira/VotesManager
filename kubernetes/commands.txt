@@ -1,0 +1,54 @@
+minikube start --cpus='4'
+
+# %%
+# run on base dir
+
+(eval $(minikube docker-env) && docker build -t voters-frontend:latest --build-arg MAIN_PATH="voters-frontend/main.go" . )
+(eval $(minikube docker-env) && docker build -t prodution-frontend:latest --build-arg MAIN_PATH="prodution-frontend/main.go" . )
+(eval $(minikube docker-env) && docker build -t votes-register:latest --build-arg MAIN_PATH="votes-register/main.go" . )
+
+
+kubectl create configmap postgres-init-sql --from-file=ddl/script.sql
+
+kubectl apply -f kubernetes/zookeeper.yaml
+kubectl apply -f kubernetes/kafka.yaml
+kubectl apply -f kubernetes/postgresql.yaml
+kubectl apply -f kubernetes/redis.yaml
+
+postgresPod=$(kubectl get pods -l app=postgres --no-headers -o custom-columns=":metadata.name")
+kafkaPod=$(kubectl get pods -l app=kafka-broker --no-headers -o custom-columns=":metadata.name")
+redisPod=$(kubectl get pods -l app=redis --no-headers -o custom-columns=":metadata.name")
+
+kubectl wait --for=condition=Ready pod/$postgresPod
+kubectl wait --for=condition=Ready pod/$kafkaPod
+kubectl wait --for=condition=Ready pod/$redisPod
+
+kubectl exec -it $postgresPod -- psql -U postgres -d postgres -f ddl/script.sql
+kubectl exec -it $kafkaPod -- kafka-topics --bootstrap-server localhost:9092 --create --topic votes
+
+kubectl apply -f kubernetes/voters-frontend.yaml
+
+
+# %%
+
+kubectl delete -f voters-frontend.yaml
+
+# %%
+
+kubectl delete pods --all 
+kubectl delete service --all 
+kubectl delete pvc --all 
+kubectl delete pv --all 
+# %%
+
+(eval $(minikube docker-env) && docker build -t voters-frontend:latest --build-arg MAIN_PATH="voters-frontend/main.go" . )
+kubectl rollout restart deployment voters-frontend 
+
+kubectl set image deployment/voters-frontend voters-frontend=voters-frontend:latest
+# %%
+
+minikube service voters-frontend --url
+
+# %%
+
+kubectl logs $(kubectl get pods -l app=voters-frontend --no-headers -o custom-columns=":metadata.name") --previous

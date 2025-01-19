@@ -17,7 +17,7 @@ async function displayParticipantsButtons() {
 }
 
 async function getParticipants(retries = 3) {
-  return await makeRequest(`${API_URL}/participants`, retries);
+  return await makeRequest(`/participants`, retries);
 }
 
 async function onVote(participantId) {
@@ -27,7 +27,7 @@ async function onVote(participantId) {
   }
 
   try {
-    const response = await fetch(`${API_URL}/votes`, {
+    const response = await fetch(`/votes`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -45,7 +45,7 @@ async function onVote(participantId) {
     alert("Ocorreu um erro ao tentar votar. Por favor, tente novamente.");
   }
 
-  window.location.replace(`${API_URL}/pages/totals/rough`);
+  window.location.replace(`/pages/totals/rough`);
 }
 
 function checkCaptchaOnSubmit(event) {

@@ -1,5 +1,3 @@
-const API_URL = "http://localhost:8080";
-
 async function makeRequest(url, retries = 3) {
     try {
       const response = await fetch(url);

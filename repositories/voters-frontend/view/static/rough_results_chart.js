@@ -5,7 +5,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 async function getTotalByParticipant(retries = 3) {
   try {
-    const response = await fetch(`${API_URL}/votes/totals/rough`);
+    const response = await fetch(`/votes/totals/rough`);
 
     if (!response.ok) {
       throw new Error("Falha ao obter resultados");
