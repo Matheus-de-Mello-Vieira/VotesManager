@@ -33,7 +33,7 @@ metadata:
   name: voters-frontend
   namespace: default
 spec:
-  type: LoadBalancer
+  type: NodePort
   ports:
     - port: 8080
       targetPort: 8080

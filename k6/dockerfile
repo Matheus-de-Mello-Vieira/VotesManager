@@ -1,0 +1,4 @@
+FROM grafana/k6:latest
+COPY script.js /scripts/
+WORKDIR /scripts
+ENTRYPOINT ["k6", "run", "script.js"]

@@ -1,4 +1,4 @@
-minikube start --cpus='4'
+minikube start --cpus='4' --driver=docker
 
 # %%
 # run on base dir
@@ -19,9 +19,9 @@ postgresPod=$(kubectl get pods -l app=postgres --no-headers -o custom-columns=":
 kafkaPod=$(kubectl get pods -l app=kafka-broker --no-headers -o custom-columns=":metadata.name")
 redisPod=$(kubectl get pods -l app=redis --no-headers -o custom-columns=":metadata.name")
 
-kubectl wait --for=condition=Ready pod/$postgresPod
-kubectl wait --for=condition=Ready pod/$kafkaPod
-kubectl wait --for=condition=Ready pod/$redisPod
+kubectl wait --for=condition=Ready pod/$postgresPod --timeout="200s"
+kubectl wait --for=condition=Ready pod/$kafkaPod --timeout="200s"
+kubectl wait --for=condition=Ready pod/$redisPod --timeout="200s"
 
 kubectl exec -it $postgresPod -- psql -U postgres -d postgres -f ddl/script.sql
 kubectl exec -it $kafkaPod -- kafka-topics --bootstrap-server localhost:9092 --create --topic votes
@@ -38,13 +38,7 @@ kubectl wait --for=condition=Ready pod/$(kubectl get pods -l app=votes-register 
 kubectl delete -f kubernetes/voters-frontend.yaml
 kubectl delete -f kubernetes/votes-register.yaml
 
-# %%
-
-kubectl delete pods --all 
-kubectl delete service --all 
-kubectl delete pvc --all 
-kubectl delete pv --all 
-# %%
+# %% update
 
 (eval $(minikube docker-env) && docker build -t voters-frontend:latest --build-arg MAIN_PATH="voters-frontend/main.go" . )
 kubectl rollout restart deployment voters-frontend
@@ -58,13 +52,26 @@ kubectl rollout restart deployment votes-register
 # %%
 
 minikube service voters-frontend --url
-
 minikube service prodution-frontend --url
-# %%
 
+# %% get logs
 kubectl logs $(kubectl get pods -l app=voters-frontend --no-headers -o custom-columns=":metadata.name") --previous
 kubectl logs $(kubectl get pods -l app=prodution-frontend --no-headers -o custom-columns=":metadata.name") --previous
 kubectl logs $(kubectl get pods -l app=votes-register --no-headers -o custom-columns=":metadata.name") --previous
 
-# %%
+# %% get number of votes on postgres
 kubectl exec -it $postgresPod -- psql -U postgres -d postgres -c 'select count(*) from votes;'
+
+# %%
+
+minikube tunnel
+kubectl get svc
+
+
+# %% load test
+(eval $(minikube docker-env) && docker build -t load-test:latest --build-arg MAIN_PATH="k6/test_load.go" k6/. )
+kubectl apply -f kubernetes/load_test.yaml
+
+kubectl logs $(kubectl get pods -l app=load-test --no-headers -o custom-columns=":metadata.name")
+
+kubectl delete -f kubernetes/load_test.yaml
