@@ -24,8 +24,7 @@ func DecorateVoteDataRepository(base domain.VoteRepository, brokers []string, to
 func (mapper VoteDataMapperKafkaDecorator) SaveOne(ctx context.Context, vote *domain.Vote) error {
 	producer, err := mapper.getProducer()
 	if err != nil {
-		log.Fatalf("Failed to create Kafka producer: %v", err)
-		return err
+		return fmt.Errorf("failed to create Kafka producer: %v", err)
 	}
 	defer producer.Close()
 
@@ -41,8 +40,7 @@ func (mapper VoteDataMapperKafkaDecorator) SaveOne(ctx context.Context, vote *do
 func (mapper VoteDataMapperKafkaDecorator) SaveMany(ctx context.Context, votes []domain.Vote) error {
 	producer, err := mapper.getProducer()
 	if err != nil {
-		log.Fatalf("Failed to create Kafka producer: %v", err)
-		return err
+		return fmt.Errorf("failed to create Kafka producer: %v", err)
 	}
 	defer producer.Close()
 

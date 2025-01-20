@@ -79,7 +79,7 @@ class Tester {
     });
 
     const headers = { "Content-Type": "application/json" };
-    const response = http.post(`/api/${this.url}/votes`, payload, {
+    const response = http.post(`${this.url}/api/votes`, payload, {
       headers: headers,
     });
 

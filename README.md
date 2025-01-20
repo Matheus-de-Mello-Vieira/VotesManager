@@ -14,6 +14,10 @@ swagger:
 * http://localhost:8080/swagger
 * http://localhost:8081/swagger
 
+### Kubenetes
+
+You can also run it on Kubernetes, I have provided a separated markdown file with the instructions: `./kubernetes/commands.md`
+
 ### Test
 Unit tests:
 ```bash

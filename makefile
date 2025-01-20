@@ -20,7 +20,7 @@ unit_test:
 	( cd repositories ; go test ./... )
 
 load_test:
-	( docker compose up k6 )
+	( docker compose up k6 --build )
 
 GOPATH = $(shell cd repositories ; go env GOPATH)
 swagger:
