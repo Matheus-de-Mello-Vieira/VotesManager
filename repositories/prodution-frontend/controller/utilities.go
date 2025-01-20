@@ -5,6 +5,8 @@ import (
 	"io/fs"
 	"net/http"
 
+	"bbb-voting/prodution-frontend/docs"
+
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
@@ -28,9 +30,17 @@ func (frontendController *FrontendController) GetServerMux() http.Handler {
 	mux.HandleFunc("/votes/totals/thorough", frontendController.GetThoroughTotals)
 
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(frontendController.staticFiles))))
+
+	configSwagger()
 	mux.Handle("/swagger/", httpSwagger.WrapHandler)
 
 	return corsMiddleware(mux)
+}
+
+func configSwagger() {
+	docs.SwaggerInfo.Title = "Prodution Frontend"
+	docs.SwaggerInfo.Description = "Frontend for Prodution"
+	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 }
 
 func corsMiddleware(next http.Handler) http.Handler {

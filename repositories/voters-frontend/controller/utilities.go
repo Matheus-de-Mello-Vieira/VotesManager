@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 
+	"bbb-voting/voters-frontend/docs"
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
@@ -31,6 +32,8 @@ func NewFrontendController(getRoughTotalsUserCase usercases.GetRoughTotalsUserCa
 }
 
 func (frontendController *FrontendController) GetServerMux() http.Handler {
+	configSwagger()
+
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", frontendController.IndexHandler)
 	mux.HandleFunc("/pages/totals/rough", frontendController.LoadRoughTotalPage)
@@ -43,6 +46,12 @@ func (frontendController *FrontendController) GetServerMux() http.Handler {
 	mux.Handle("/swagger/", httpSwagger.WrapHandler)
 
 	return corsMiddleware(mux)
+}
+
+func configSwagger() {
+	docs.SwaggerInfo.Title = "Voters Frontend"
+	docs.SwaggerInfo.Description = "Frontend for Voters"
+	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 }
 
 func corsMiddleware(next http.Handler) http.Handler {
