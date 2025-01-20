@@ -10,10 +10,10 @@ import (
 )
 
 type ParticipantDataMapper struct {
-	connector PostgresqlConnector
+	connector *PostgresqlConnector
 }
 
-func NewParticipantDataMapper(connector PostgresqlConnector) ParticipantDataMapper {
+func NewParticipantDataMapper(connector *PostgresqlConnector) ParticipantDataMapper {
 	return ParticipantDataMapper{connector}
 }
 

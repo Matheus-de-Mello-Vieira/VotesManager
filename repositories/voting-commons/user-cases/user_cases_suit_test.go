@@ -1,4 +1,4 @@
-package controller
+package usercases
 
 import (
 	"testing"
@@ -9,5 +9,5 @@ import (
 
 func TestVoteService(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Prodution Frontend Suite")
+	RunSpecs(t, "UserCases")
 }

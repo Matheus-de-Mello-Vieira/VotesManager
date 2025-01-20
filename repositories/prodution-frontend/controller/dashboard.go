@@ -2,32 +2,30 @@ package controller
 
 import (
 	"bbb-voting/voting-commons/domain"
-	"context"
 	"encoding/json"
 	"html/template"
-	"io/fs"
 	"log"
 	"net/http"
 )
-
-type FrontendController struct {
-	participantRepository domain.ParticipantRepository
-	context               context.Context
-	embedTemplates        fs.FS
-}
-
-func NewFrontendController(participantRepository domain.ParticipantRepository, context context.Context, embedTemplates fs.FS) FrontendController {
-	return FrontendController{
-		participantRepository: participantRepository,
-		context:               context,
-		embedTemplates:        embedTemplates,
-	}
-}
 
 type ThoroughTotalsResponseModel struct {
 	GeneralTotal       int                  `json:"general_total"`
 	TotalByHour        []domain.TotalByHour `json:"total_by_hour"`
 	TotalByParticipant map[string]int       `json:"total_by_participant"`
+}
+
+func parseToThoroughTotalsResponseModel(content *domain.ThoroughTotals) ThoroughTotalsResponseModel {
+	responseModel := ThoroughTotalsResponseModel{
+		GeneralTotal:       content.GeneralTotal,
+		TotalByHour:        content.TotalByHour,
+		TotalByParticipant: map[string]int{},
+	}
+
+	for participant, value := range content.TotalByParticipant {
+		responseModel.TotalByParticipant[participant.Name] = value
+	}
+
+	return responseModel
 }
 
 // @Summary Serve HTML thorough total page
@@ -37,7 +35,7 @@ type ThoroughTotalsResponseModel struct {
 // @Success 200 {string} string "HTML Content"
 // @Router / [get]
 func (controller *FrontendController) GetPage(responseWriter http.ResponseWriter, request *http.Request) {
-	tmpl, err := template.ParseFS(controller.embedTemplates, "dashboard.html")
+	tmpl, err := template.ParseFS(controller.templates, "dashboard.html")
 
 	if err != nil {
 		handleInternalServerError(responseWriter, err)
@@ -70,21 +68,13 @@ func (controller *FrontendController) GetThoroughTotals(responseWriter http.Resp
 		return
 	}
 
-	content, err := controller.participantRepository.GetThoroughTotals(controller.context)
+	content, err := controller.getThoroughTotalsUserCase.Execute()
 	if err != nil {
 		log.Printf("Error on get result: %v", err)
 		return
 	}
 
-	responseModel := ThoroughTotalsResponseModel{
-		GeneralTotal:       content.GeneralTotal,
-		TotalByHour:        content.TotalByHour,
-		TotalByParticipant: map[string]int{},
-	}
-
-	for participant, value := range content.TotalByParticipant {
-		responseModel.TotalByParticipant[participant.Name] = value
-	}
+	responseModel := parseToThoroughTotalsResponseModel(content)
 
 	responseWriter.Header().Set("Content-Type", "application/json")
 	responseWriter.WriteHeader(http.StatusOK)

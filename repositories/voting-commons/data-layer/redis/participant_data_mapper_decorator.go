@@ -11,13 +11,13 @@ import (
 )
 
 type ParticipantDataMapperRedisDecorator struct {
-	redis            redis.Client
+	redis            *redis.Client
 	base             domain.ParticipantRepository
 	participantsById map[int]domain.Participant
 	participants     []domain.Participant
 }
 
-func DecorateParticipantDataMapperWithRedis(base domain.ParticipantRepository, redis redis.Client, ctx context.Context) (*ParticipantDataMapperRedisDecorator, error) {
+func DecorateParticipantDataMapperWithRedis(base domain.ParticipantRepository, redis *redis.Client, ctx context.Context) (*ParticipantDataMapperRedisDecorator, error) {
 	participants, err := base.FindAll(ctx)
 	if err != nil {
 		return nil, err

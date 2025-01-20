@@ -4,7 +4,9 @@ import (
 	"bbb-voting/prodution-frontend/controller"
 	_ "bbb-voting/prodution-frontend/docs"
 	postgresqldatamapper "bbb-voting/voting-commons/data-layer/postgresql"
+	redisdatamapper "bbb-voting/voting-commons/data-layer/redis"
 	"bbb-voting/voting-commons/domain"
+	usercases "bbb-voting/voting-commons/user-cases"
 	"context"
 	"embed"
 	"io/fs"
@@ -13,7 +15,6 @@ import (
 	"os"
 
 	"github.com/redis/go-redis/v9"
-	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 //go:embed view/static/*
@@ -28,51 +29,23 @@ func main() {
 
 	ctx := context.Background()
 	postgresqlConnector := postgresqldatamapper.NewPostgresqlConnector(os.Getenv("POSTGRESQL_URI"))
-	// redisClient := getRedisClient(os.Getenv("REDIS_URL"))
+	redisClient := getRedisClient(os.Getenv("REDIS_URL"))
 
-	var participantRepository domain.ParticipantRepository = postgresqldatamapper.NewParticipantDataMapper(
-		postgresqlConnector,
-	)
-	// var err error
-	// participantRepository, err = redisdatamapper.DecorateParticipantDataMapperWithRedis(participantRepository, *redisClient, ctx)
-	// if err != nil {
-	// 	log.Fatalf("Faled to load cache: %s", err)
-	// }
+	participantRepository := getParticipantRepository(&postgresqlConnector, redisClient, ctx)
+
+	getThoroughTotalsUserCase := usercases.NewGetThoroughTotalsUserCase(participantRepository, ctx)
 
 	frontendController := controller.NewFrontendController(
-		participantRepository,
-		ctx, templates,
+		getThoroughTotalsUserCase,
+		templates, staticFiles,
 	)
 
-	mux := http.NewServeMux()
-	mux.HandleFunc("/", frontendController.GetPage)
-	mux.HandleFunc("/votes/totals/thorough", frontendController.GetThoroughTotals)
-
-	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticFiles))))
-	mux.Handle("/swagger/", httpSwagger.WrapHandler)
+	serverMux := frontendController.GetServerMux()
 
 	log.Println("Server is running on http://localhost:8081")
-	if err := http.ListenAndServe(":8081", corsMiddleware(mux)); err != nil {
+	if err := http.ListenAndServe(":8081", serverMux); err != nil {
 		log.Fatal(err)
 	}
-}
-
-func corsMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Set CORS headers
-		w.Header().Set("Access-Control-Allow-Origin", "*") // Allow all origins; restrict as needed
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
-
-		// Handle preflight OPTIONS requests
-		if r.Method == http.MethodOptions {
-			w.WriteHeader(http.StatusNoContent)
-			return
-		}
-
-		// Call the next handler
-		next.ServeHTTP(w, r)
-	})
 }
 
 func getRedisClient(url string) *redis.Client {
@@ -81,4 +54,16 @@ func getRedisClient(url string) *redis.Client {
 		log.Fatalf("Failed to parse Redis URL: %v", err)
 	}
 	return redis.NewClient(opts)
+}
+func getParticipantRepository(postgresqlConnector *postgresqldatamapper.PostgresqlConnector, redisClient *redis.Client, ctx context.Context) domain.ParticipantRepository {
+	var base = postgresqldatamapper.NewParticipantDataMapper(
+		postgresqlConnector,
+	)
+
+	result, err := redisdatamapper.DecorateParticipantDataMapperWithRedis(base, redisClient, ctx)
+	if err != nil {
+		log.Fatalf("Faled to load cache: %s", err)
+	}
+
+	return result
 }
