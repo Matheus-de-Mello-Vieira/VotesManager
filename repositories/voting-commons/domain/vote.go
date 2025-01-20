@@ -15,5 +15,5 @@ type Vote struct {
 func (vote *Vote) GetHour() time.Time {
 	resultTimestamp := (vote.Timestamp.Unix() / SECONDS_IN_HOUR) * SECONDS_IN_HOUR
 
-	return time.Unix(resultTimestamp, 0)
+	return time.Unix(resultTimestamp, 0).In(vote.Timestamp.Location())
 }
