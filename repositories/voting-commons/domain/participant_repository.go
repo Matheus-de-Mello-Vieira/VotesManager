@@ -6,7 +6,7 @@ import (
 )
 
 type TotalByHour struct {
-	Total int `json:"total"`
+	Total int       `json:"total"`
 	Hour  time.Time `json:"hour"`
 }
 type ThoroughTotals struct {
@@ -18,6 +18,4 @@ type ThoroughTotals struct {
 type ParticipantRepository interface {
 	FindAll(ctx context.Context) ([]Participant, error)
 	FindByID(ctx context.Context, id int) (*Participant, error)
-	GetRoughTotals(ctx context.Context) (map[Participant]int, error)
-	GetThoroughTotals(ctx context.Context) (*ThoroughTotals, error)
 }

@@ -53,12 +53,11 @@ func (mapper MockedVotesDataMapper) SaveMany(ctx context.Context, votes []domain
 	return nil
 }
 
-func getGeneralTotal() (*int, error) {
-	result := len(MockedVotes)
-	return &result, nil
+func (mapper MockedVotesDataMapper) GetGeneralTotal(ctx context.Context) (int, error) {
+	return len(MockedVotes), nil
 }
 
-func getVotesByHour() ([]domain.TotalByHour, error) {
+func (mapper MockedVotesDataMapper) GetTotalByHour(ctx context.Context) ([]domain.TotalByHour, error) {
 	var result []domain.TotalByHour
 
 	for hour, total := range getMapByHour() {
@@ -82,4 +81,17 @@ func getMapByHour() map[time.Time]int {
 	}
 
 	return result
+}
+
+func (mapper MockedVotesDataMapper) GetTotalByParticipant(ctx context.Context) (map[domain.Participant]int, error) {
+	var result = map[domain.Participant]int{}
+
+	for _, vote := range MockedVotes {
+		if _, exists := result[vote.Participant]; exists {
+			result[vote.Participant] = 0
+		}
+		result[vote.Participant]++
+	}
+
+	return result, nil
 }

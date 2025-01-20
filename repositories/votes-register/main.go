@@ -19,7 +19,7 @@ func main() {
 
 	postgresqlConnector := postgresqldatamapper.NewPostgresqlConnector(os.Getenv("POSTGRESQL_URI"))
 	voteDataMapper := postgresqldatamapper.NewVoteDataMapper(
-		postgresqlConnector,
+		&postgresqlConnector,
 	)
 
 	voteRegister := service.NewVoteRegister(voteConsumer, voteDataMapper, &ctx)

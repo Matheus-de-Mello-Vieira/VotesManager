@@ -13,14 +13,14 @@ var _ = Describe("GetThoroughTotals", func() {
 	var (
 		ctx                   context.Context
 		sut                   GetThoroughTotalsUserCase
-		participantRepository domain.ParticipantRepository
+		voteRepository domain.VoteRepository
 	)
 	BeforeEach(func() {
 		ctx = context.Background()
 
-		participantRepository = mocksdatamappers.MockedParticipantDataMapper{}
+		voteRepository = mocksdatamappers.MockedVotesDataMapper{}
 
-		sut = NewGetThoroughTotalsUserCaseImpl(participantRepository, ctx)
+		sut = NewGetThoroughTotalsUserCaseImpl(voteRepository, ctx)
 	})
 
 	It("should return thorough totals", func() {

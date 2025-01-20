@@ -9,15 +9,15 @@ type GetRoughTotalsUserCase interface {
 	Execute() (map[domain.Participant]int, error)
 }
 type GetRoughTotalsUserCaseImpl struct {
-	participantRepository domain.ParticipantRepository
-	ctx                   context.Context
+	voteRepository domain.VoteRepository
+	ctx            context.Context
 }
 
-func NewGetRoughTotalsUserCaseImpl(participantRepository domain.ParticipantRepository, ctx context.Context,
+func NewGetRoughTotalsUserCaseImpl(voteRepository domain.VoteRepository, ctx context.Context,
 ) GetRoughTotalsUserCase {
-	return GetRoughTotalsUserCaseImpl{participantRepository, ctx}
+	return GetRoughTotalsUserCaseImpl{voteRepository, ctx}
 }
 
 func (userCase GetRoughTotalsUserCaseImpl) Execute() (map[domain.Participant]int, error) {
-	return userCase.participantRepository.GetRoughTotals(userCase.ctx)
+	return userCase.voteRepository.GetTotalByParticipant(userCase.ctx)
 }

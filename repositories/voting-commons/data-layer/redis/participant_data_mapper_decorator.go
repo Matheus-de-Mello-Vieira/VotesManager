@@ -2,136 +2,109 @@ package redisdatamapper
 
 import (
 	"bbb-voting/voting-commons/domain"
-	"cmp"
 	"context"
+	"encoding/json"
 	"fmt"
-	"slices"
-	"strconv"
 	"time"
 
 	"github.com/redis/go-redis/v9"
 )
 
 type ParticipantDataMapperRedisDecorator struct {
-	redis            *redis.Client
-	base             domain.ParticipantRepository
-	participantsById map[int]domain.Participant
-	participants     []domain.Participant
+	redis    *redis.Client
+	base     domain.ParticipantRepository
+	baseLock *RedisLock
+	ttl      time.Duration
 }
 
-func DecorateParticipantDataMapperWithRedis(base domain.ParticipantRepository, redis *redis.Client, ctx context.Context) (*ParticipantDataMapperRedisDecorator, error) {
-	participants, err := base.FindAll(ctx)
-	if err != nil {
-		return nil, err
-	}
-	participantsById := assemblyParticipantById(participants)
+const participantsKey = "participants"
 
-	return &ParticipantDataMapperRedisDecorator{redis: redis, base: base, participantsById: participantsById, participants: participants}, nil
-}
-func assemblyParticipantById(participants []domain.Participant) map[int]domain.Participant {
-	result := map[int]domain.Participant{}
-	for _, participant := range participants {
-		result[participant.ParticipantID] = participant
-	}
+func DecorateParticipantRepository(base domain.ParticipantRepository, redis *redis.Client, ttl time.Duration) *ParticipantDataMapperRedisDecorator {
+	lock_ttl, _ := time.ParseDuration("30s")
 
-	return result
+	lock := NewRedisLock(redis, "participants:lock", lock_ttl)
+	return &ParticipantDataMapperRedisDecorator{redis: redis, base: base, baseLock: lock, ttl: ttl}
 }
 
 func (mapper ParticipantDataMapperRedisDecorator) FindAll(ctx context.Context) ([]domain.Participant, error) {
-	return mapper.participants, nil
+	err := mapper.loadCacheIfHaveNotLoaded(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	resultStr, err := mapper.redis.Get(ctx, participantsKey).Result()
+	if err != nil {
+		return nil, err
+	}
+
+	var result []domain.Participant
+
+	json.Unmarshal([]byte(resultStr), &result)
+
+	return result, nil
 }
 func (mapper ParticipantDataMapperRedisDecorator) FindByID(ctx context.Context, id int) (*domain.Participant, error) {
-	participant := mapper.participantsById[id]
-	return &participant, nil
-}
-
-func (mapper ParticipantDataMapperRedisDecorator) GetRoughTotals(ctx context.Context) (map[domain.Participant]int, error) {
-	return mapper.getVotesByParticipant(ctx)
-}
-
-func (mapper ParticipantDataMapperRedisDecorator) GetThoroughTotals(ctx context.Context) (*domain.ThoroughTotals, error) {
-	generalTotal, err := mapper.getGeneralTotal(ctx)
+	participants, err := mapper.FindAll(ctx)
 	if err != nil {
 		return nil, err
 	}
 
-	totalByParticipant, err := mapper.getVotesByParticipant(ctx)
-	if err != nil {
-		return nil, err
+	for _, participant := range participants {
+		if participant.ParticipantID == id {
+			return &participant, nil
+		}
 	}
 
-	totalByHour, err := mapper.getVotesByHour(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	result := domain.ThoroughTotals{GeneralTotal: *generalTotal, TotalByHour: totalByHour, TotalByParticipant: totalByParticipant}
-
-	return &result, nil
+	return nil, nil
 }
 
-func (mapper ParticipantDataMapperRedisDecorator) getGeneralTotal(ctx context.Context) (*int, error) {
-	resultStr, err := mapper.redis.Get(ctx, "votes:total").Result()
+func (mapper *ParticipantDataMapperRedisDecorator) loadCacheIfHaveNotLoaded(ctx context.Context) error {
+	mapper.baseLock.Lock(ctx)
+	defer mapper.baseLock.Unlock(ctx)
+
+	isCacheValid, err := mapper.isCacheValid(ctx)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	result, err := strconv.Atoi(resultStr)
-	return &result, err
+
+	if !isCacheValid {
+		return mapper.loadCache(ctx)
+	}
+
+	return nil
 }
-func (mapper ParticipantDataMapperRedisDecorator) getVotesByParticipant(ctx context.Context) (map[domain.Participant]int, error) {
-	participantsIdByVotes, err := mapper.redis.HGetAll(ctx, "votes:by:participant").Result()
+func (mapper *ParticipantDataMapperRedisDecorator) isCacheValid(ctx context.Context) (bool, error) {
+	exists, err := mapper.redis.Exists(ctx, participantsKey).Result()
+
 	if err != nil {
-		return nil, fmt.Errorf("failed to get votes by participant: %w", err)
+		return false, err
 	}
 
-	result := map[domain.Participant]int{}
-	for participantIdStr, voteStr := range participantsIdByVotes {
-		participantId, err := strconv.Atoi(participantIdStr)
-		if err != nil {
-			return nil, err
-		}
-		vote, err := strconv.Atoi(voteStr)
-		if err != nil {
-			return nil, err
-		}
-
-		participant, err := mapper.FindByID(ctx, participantId)
-		if err != nil {
-			return nil, err
-		}
-		result[*participant] = vote
+	return exists == 1, nil
+}
+func (mapper *ParticipantDataMapperRedisDecorator) loadCache(ctx context.Context) error {
+	value, err := mapper.fetchCacheTobeValue(ctx)
+	if err != nil {
+		return err
 	}
 
-	return result, nil
+	err = mapper.redis.Set(ctx, participantsKey, value, mapper.ttl).Err()
+	if err != nil {
+		return fmt.Errorf("could not set value: %v", err)
+	}
+	return nil
 }
 
-func (mapper ParticipantDataMapperRedisDecorator) getVotesByHour(ctx context.Context) ([]domain.TotalByHour, error) {
-	results, err := mapper.redis.HGetAll(ctx, "votes:by:hour").Result()
+func (mapper *ParticipantDataMapperRedisDecorator) fetchCacheTobeValue(ctx context.Context) (string, error) {
+	participants, err := mapper.base.FindAll(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get votes by hour: %w", err)
+		return "", err
 	}
 
-	result := []domain.TotalByHour{}
-	for hourStr, totalStr := range results {
-		hour, err := strconv.ParseInt(hourStr, 10, 64)
-		if err != nil {
-			return nil, err
-		}
-		total, err := strconv.Atoi(totalStr)
-		if err != nil {
-			return nil, err
-		}
-
-		element := domain.TotalByHour{
-			Total: total,
-			Hour:  time.Unix(hour, 0),
-		}
-		result = append(result, element)
+	voteJSON, err := json.Marshal(participants)
+	if err != nil {
+		return "", fmt.Errorf("failed to serialize vote to JSON: %v", err)
 	}
 
-	slices.SortFunc(result, func(a, b domain.TotalByHour) int {
-		return cmp.Compare(a.Hour.Unix(), b.Hour.Unix())
-	})
-
-	return result, nil
+	return string(voteJSON), nil
 }

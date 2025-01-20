@@ -5,6 +5,7 @@ import (
 	_ "bbb-voting/prodution-frontend/docs"
 	postgresqldatamapper "bbb-voting/voting-commons/data-layer/postgresql"
 	redisdatamapper "bbb-voting/voting-commons/data-layer/redis"
+	localdatamapper "bbb-voting/voting-commons/data-layer/local-cache"
 	"bbb-voting/voting-commons/domain"
 	usercases "bbb-voting/voting-commons/user-cases"
 	"context"
@@ -13,6 +14,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -31,9 +33,10 @@ func main() {
 	postgresqlConnector := postgresqldatamapper.NewPostgresqlConnector(os.Getenv("POSTGRESQL_URI"))
 	redisClient := getRedisClient(os.Getenv("REDIS_URL"))
 
-	participantRepository := getParticipantRepository(&postgresqlConnector, redisClient, ctx)
+	participantRepository := getParticipantRepository(&postgresqlConnector, redisClient)
+	voteRepository := getVotesRepository(&postgresqlConnector, participantRepository, redisClient)
 
-	getThoroughTotalsUserCase := usercases.NewGetThoroughTotalsUserCaseImpl(participantRepository, ctx)
+	getThoroughTotalsUserCase := usercases.NewGetThoroughTotalsUserCaseImpl(voteRepository, ctx)
 
 	frontendController := controller.NewFrontendController(
 		getThoroughTotalsUserCase,
@@ -55,15 +58,23 @@ func getRedisClient(url string) *redis.Client {
 	}
 	return redis.NewClient(opts)
 }
-func getParticipantRepository(postgresqlConnector *postgresqldatamapper.PostgresqlConnector, redisClient *redis.Client, ctx context.Context) domain.ParticipantRepository {
-	var base = postgresqldatamapper.NewParticipantDataMapper(
-		postgresqlConnector,
-	)
+func getParticipantRepository(postgresqlConnector *postgresqldatamapper.PostgresqlConnector, redisClient *redis.Client) domain.ParticipantRepository {
+	var result domain.ParticipantRepository
 
-	result, err := redisdatamapper.DecorateParticipantDataMapperWithRedis(base, redisClient, ctx)
-	if err != nil {
-		log.Fatalf("Faled to load cache: %s", err)
-	}
+	redisCacheTTL, _ := time.ParseDuration("12h")
+	localCacheTTL, _ := time.ParseDuration("6h")
+
+	result = postgresqldatamapper.NewParticipantDataMapper(postgresqlConnector)
+	result = redisdatamapper.DecorateParticipantRepository(result, redisClient, redisCacheTTL)
+	result = localdatamapper.DecorateParticipantDataMapperWithLocalCacheDecorator(result, localCacheTTL)
+
+	return result
+}
+func getVotesRepository(postgresqlConnector *postgresqldatamapper.PostgresqlConnector, participantRepository domain.ParticipantRepository, redisClient *redis.Client) domain.VoteRepository {
+	var result domain.VoteRepository
+
+	result = postgresqldatamapper.NewVoteDataMapper(postgresqlConnector)
+	result = redisdatamapper.DecorateVoteDataRepository(result, *redisClient, participantRepository)
 
 	return result
 }

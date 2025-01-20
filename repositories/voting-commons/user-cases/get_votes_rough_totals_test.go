@@ -14,23 +14,23 @@ var _ = Describe("GetRoughTotals", func() {
 	var (
 		ctx                   context.Context
 		sut                   GetRoughTotalsUserCase
-		participantRepository domain.ParticipantRepository
+		voteRepository domain.VoteRepository
 	)
 	BeforeEach(func() {
 		ctx = context.Background()
 
-		participantRepository = mocksdatamappers.MockedParticipantDataMapper{}
+		voteRepository = mocksdatamappers.MockedVotesDataMapper{}
 
-		sut = NewGetRoughTotalsUserCaseImpl(participantRepository, ctx)
+		sut = NewGetRoughTotalsUserCaseImpl(voteRepository, ctx)
 	})
 
 	It("should return thorough totals", func() {
 		actualResult, err := sut.Execute()
 		Expect(err).To(BeNil())
 
-		expectedResult, err := participantRepository.GetRoughTotals(ctx)
+		expectedResult, err := voteRepository.GetTotalByParticipant(ctx)
 		if err != nil {
-			Fail(fmt.Sprint("error on GetRoughTotals:", err))
+			Fail(fmt.Sprint("error on GetTotalByParticipant:", err))
 		}
 
 		Expect(len(actualResult)).To(Equal(len(expectedResult)))

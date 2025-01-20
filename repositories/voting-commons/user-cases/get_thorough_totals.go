@@ -4,19 +4,37 @@ import (
 	"bbb-voting/voting-commons/domain"
 	"context"
 )
+
 type GetThoroughTotalsUserCase interface {
 	Execute() (*domain.ThoroughTotals, error)
 }
 type GetThoroughTotalsUserCaseImpl struct {
-	participantRepository domain.ParticipantRepository
-	ctx                   context.Context
+	voteRepository domain.VoteRepository
+	ctx            context.Context
 }
 
-func NewGetThoroughTotalsUserCaseImpl(participantRepository domain.ParticipantRepository, ctx context.Context,
+func NewGetThoroughTotalsUserCaseImpl(voteRepository domain.VoteRepository, ctx context.Context,
 ) GetThoroughTotalsUserCaseImpl {
-	return GetThoroughTotalsUserCaseImpl{participantRepository, ctx}
+	return GetThoroughTotalsUserCaseImpl{voteRepository, ctx}
 }
 
 func (userCase GetThoroughTotalsUserCaseImpl) Execute() (*domain.ThoroughTotals, error) {
-	return userCase.participantRepository.GetThoroughTotals(userCase.ctx)
+	generalTotal, err := userCase.voteRepository.GetGeneralTotal(userCase.ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	totalByParticipant, err := userCase.voteRepository.GetTotalByParticipant(userCase.ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	totalByHour, err := userCase.voteRepository.GetTotalByHour(userCase.ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	result := domain.ThoroughTotals{GeneralTotal: generalTotal, TotalByHour: totalByHour, TotalByParticipant: totalByParticipant}
+
+	return &result, nil
 }
