@@ -5,16 +5,19 @@ import (
 	"context"
 )
 
-type GetRoughTotalsUserCase struct {
+type GetRoughTotalsUserCase interface {
+	Execute() (map[domain.Participant]int, error)
+}
+type GetRoughTotalsUserCaseImpl struct {
 	participantRepository domain.ParticipantRepository
 	ctx                   context.Context
 }
 
-func NewGetRoughTotalsUserCase(participantRepository domain.ParticipantRepository, ctx context.Context,
+func NewGetRoughTotalsUserCaseImpl(participantRepository domain.ParticipantRepository, ctx context.Context,
 ) GetRoughTotalsUserCase {
-	return GetRoughTotalsUserCase{participantRepository, ctx}
+	return GetRoughTotalsUserCaseImpl{participantRepository, ctx}
 }
 
-func (userCase GetRoughTotalsUserCase) Execute() (map[domain.Participant]int, error) {
+func (userCase GetRoughTotalsUserCaseImpl) Execute() (map[domain.Participant]int, error) {
 	return userCase.participantRepository.GetRoughTotals(userCase.ctx)
 }

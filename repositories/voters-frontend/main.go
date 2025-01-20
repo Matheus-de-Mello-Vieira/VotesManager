@@ -34,9 +34,9 @@ func main() {
 	participantRepository := getParticipantRepository(&postgresqlConnector, redisClient, ctx)
 	voteRepository := getVotesRepository([]string{os.Getenv("KAFKA_URI")}, redisClient)
 
-	getRoughTotalsUserCase := usercases.NewGetRoughTotalsUserCase(participantRepository, ctx)
-	getParticipantsUserCase := usercases.NewGetParticipantsUserCase(participantRepository, ctx)
-	castVoteUserCase := usercases.NewCastVoteUserCase(voteRepository, participantRepository, ctx)
+	getRoughTotalsUserCase := usercases.NewGetRoughTotalsUserCaseImpl(participantRepository, ctx)
+	getParticipantsUserCase := usercases.NewGetParticipantsUserCaseImpl(participantRepository, ctx)
+	castVoteUserCase := usercases.NewCastVoteUserCaseImpl(voteRepository, participantRepository, ctx)
 
 	frontendController := controller.NewFrontendController(
 		getRoughTotalsUserCase, getParticipantsUserCase, castVoteUserCase,

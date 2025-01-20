@@ -5,16 +5,19 @@ import (
 	"context"
 )
 
-type GetParticipantsUserCase struct {
+type GetParticipantsUserCase interface {
+	Execute() ([]domain.Participant, error)
+}
+type GetParticipantsUserCaseImpl struct {
 	participantRepository domain.ParticipantRepository
 	ctx                   context.Context
 }
 
-func NewGetParticipantsUserCase(participantRepository domain.ParticipantRepository, ctx context.Context,
-) GetParticipantsUserCase {
-	return GetParticipantsUserCase{participantRepository, ctx}
+func NewGetParticipantsUserCaseImpl(participantRepository domain.ParticipantRepository, ctx context.Context,
+) GetParticipantsUserCaseImpl {
+	return GetParticipantsUserCaseImpl{participantRepository, ctx}
 }
 
-func (userCase GetParticipantsUserCase) Execute() ([]domain.Participant, error) {
+func (userCase GetParticipantsUserCaseImpl) Execute() ([]domain.Participant, error) {
 	return userCase.participantRepository.FindAll(userCase.ctx)
 }

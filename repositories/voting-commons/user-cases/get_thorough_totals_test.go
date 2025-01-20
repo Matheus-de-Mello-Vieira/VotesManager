@@ -20,7 +20,7 @@ var _ = Describe("GetThoroughTotals", func() {
 
 		participantRepository = mocksdatamappers.MockedParticipantDataMapper{}
 
-		sut = NewGetThoroughTotalsUserCase(participantRepository, ctx)
+		sut = NewGetThoroughTotalsUserCaseImpl(participantRepository, ctx)
 	})
 
 	It("should return thorough totals", func() {

@@ -33,7 +33,7 @@ func main() {
 
 	participantRepository := getParticipantRepository(&postgresqlConnector, redisClient, ctx)
 
-	getThoroughTotalsUserCase := usercases.NewGetThoroughTotalsUserCase(participantRepository, ctx)
+	getThoroughTotalsUserCase := usercases.NewGetThoroughTotalsUserCaseImpl(participantRepository, ctx)
 
 	frontendController := controller.NewFrontendController(
 		getThoroughTotalsUserCase,

@@ -20,7 +20,7 @@ var _ = Describe("GetParticipants", func() {
 
 		participantRepository = mocksdatamappers.MockedParticipantDataMapper{}
 
-		sut = NewGetParticipantsUserCase(participantRepository, ctx)
+		sut = NewGetParticipantsUserCaseImpl(participantRepository, ctx)
 	})
 
 	It("should get participants", func() {

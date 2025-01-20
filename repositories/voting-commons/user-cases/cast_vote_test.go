@@ -23,7 +23,7 @@ var _ = Describe("CastVote", func() {
 		participantRepository = mocksdatamappers.MockedParticipantDataMapper{}
 		voteRepository = mocksdatamappers.MockedVotesDataMapper{}
 
-		sut = NewCastVoteUserCase(voteRepository, participantRepository, ctx)
+		sut = NewCastVoteUserCaseImpl(voteRepository, participantRepository, ctx)
 	})
 
 	It("should cast voter", func() {

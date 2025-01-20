@@ -4,17 +4,19 @@ import (
 	"bbb-voting/voting-commons/domain"
 	"context"
 )
-
-type GetThoroughTotalsUserCase struct {
+type GetThoroughTotalsUserCase interface {
+	Execute() (*domain.ThoroughTotals, error)
+}
+type GetThoroughTotalsUserCaseImpl struct {
 	participantRepository domain.ParticipantRepository
 	ctx                   context.Context
 }
 
-func NewGetThoroughTotalsUserCase(participantRepository domain.ParticipantRepository, ctx context.Context,
-) GetThoroughTotalsUserCase {
-	return GetThoroughTotalsUserCase{participantRepository, ctx}
+func NewGetThoroughTotalsUserCaseImpl(participantRepository domain.ParticipantRepository, ctx context.Context,
+) GetThoroughTotalsUserCaseImpl {
+	return GetThoroughTotalsUserCaseImpl{participantRepository, ctx}
 }
 
-func (userCase GetThoroughTotalsUserCase) Execute() (*domain.ThoroughTotals, error) {
+func (userCase GetThoroughTotalsUserCaseImpl) Execute() (*domain.ThoroughTotals, error) {
 	return userCase.participantRepository.GetThoroughTotals(userCase.ctx)
 }

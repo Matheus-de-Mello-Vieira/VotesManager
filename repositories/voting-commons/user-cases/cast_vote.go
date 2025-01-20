@@ -7,7 +7,11 @@ import (
 	"time"
 )
 
-type CastVoteUserCase struct {
+type CastVoteUserCase interface {
+	Execute(castVoteDto *CastVoteDTO) (*domain.Vote, error)
+}
+
+type CastVoteUserCaseImpl struct {
 	voteRepository        domain.VoteRepository
 	participantRepository domain.ParticipantRepository
 	ctx                   context.Context
@@ -19,12 +23,12 @@ type CastVoteDTO struct {
 
 var ErrParticipantNotFound = errors.New("participant not found")
 
-func NewCastVoteUserCase(voteRepository domain.VoteRepository, participantRepository domain.ParticipantRepository, ctx context.Context,
-) CastVoteUserCase {
-	return CastVoteUserCase{voteRepository, participantRepository, ctx}
+func NewCastVoteUserCaseImpl(voteRepository domain.VoteRepository, participantRepository domain.ParticipantRepository, ctx context.Context,
+) CastVoteUserCaseImpl {
+	return CastVoteUserCaseImpl{voteRepository, participantRepository, ctx}
 }
 
-func (userCase CastVoteUserCase) Execute(castVoteDto *CastVoteDTO) (*domain.Vote, error) {
+func (userCase CastVoteUserCaseImpl) Execute(castVoteDto *CastVoteDTO) (*domain.Vote, error) {
 	participant, _ := userCase.participantRepository.FindByID(userCase.ctx, castVoteDto.ParticipantID)
 
 	if participant == nil {

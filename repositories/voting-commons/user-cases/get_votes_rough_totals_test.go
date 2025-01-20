@@ -21,7 +21,7 @@ var _ = Describe("GetRoughTotals", func() {
 
 		participantRepository = mocksdatamappers.MockedParticipantDataMapper{}
 
-		sut = NewGetRoughTotalsUserCase(participantRepository, ctx)
+		sut = NewGetRoughTotalsUserCaseImpl(participantRepository, ctx)
 	})
 
 	It("should return thorough totals", func() {
