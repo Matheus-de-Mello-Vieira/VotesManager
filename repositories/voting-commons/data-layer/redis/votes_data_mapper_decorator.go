@@ -51,7 +51,7 @@ func (mapper VoteDataMapperRedisDecorator) saveOneRedis(ctx context.Context, vot
 	participantCountKey := fmt.Sprint(vote.Participant.ParticipantID)
 	pipeline.HIncrBy(ctx, "votes:by:participant", participantCountKey, 1)
 
-	hourKey := vote.Timestamp.Format("15")
+	hourKey := fmt.Sprint(vote.GetHour().Unix())
 	pipeline.HIncrBy(ctx, "votes:by:hour", hourKey, 1)
 
 	return nil

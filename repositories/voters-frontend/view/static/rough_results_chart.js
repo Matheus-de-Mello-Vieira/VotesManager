@@ -50,12 +50,16 @@ function displayChartTotalsByParticipant(totalByParticipant) {
     options: {
       scales: {
         y: {
-          beginAtZero: true,
+          type: "linear",
+          min: 0,
           ticks: {
             format: {
               style: "percent",
             },
           },
+        },
+        x: {
+          type: "category",
         },
       },
     },

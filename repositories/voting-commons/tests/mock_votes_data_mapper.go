@@ -71,14 +71,14 @@ func getVotesByHour() ([]domain.TotalByHour, error) {
 	return result, nil
 }
 
-func getMapByHour() map[int]int {
-	var result = map[int]int{}
+func getMapByHour() map[time.Time]int {
+	var result = map[time.Time]int{}
 
 	for _, vote := range MockedVotes {
-		if _, exists := result[vote.Timestamp.Hour()]; exists {
-			result[vote.Timestamp.Hour()] = 0
+		if _, exists := result[vote.GetHour()]; exists {
+			result[vote.GetHour()] = 0
 		}
-		result[vote.Timestamp.Hour()]++
+		result[vote.GetHour()]++
 	}
 
 	return result

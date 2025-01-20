@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 async function getTotals(retries = 3) {
-  return await makeRequest(`/votes/totals/thorough`, retries)
+  return await makeRequest(`/votes/totals/thorough`, retries);
 }
 
 async function makeRequest(url, retries = 3) {
@@ -37,7 +37,7 @@ function displayTotal(total) {
 }
 
 function displayChartByHour(totalByHour) {
-  const hours = totalByHour.map((x) => x["hour"]);
+  const hours = totalByHour.map((x) => Date.parse(x["hour"]));
   const totals = totalByHour.map((x) => x["total"]);
 
   const data = {
@@ -56,11 +56,28 @@ function displayChartByHour(totalByHour) {
   const config = {
     type: "line",
     data: data,
+    options: {
+      scales: {
+        x: {
+          type: "time",
+          time: {
+            unit: "hour",
+          },
+        },
+        y: {
+          type: "linear",
+          min: 0,
+          ticks: {
+            stepSize: 1,
+          },
+        },
+      },
+    },
   };
 
   // 4. Create and render the chart
   const ctx = document.getElementById("hourlyTotalChart").getContext("2d");
-  const resultChart = new Chart(ctx, config);
+  new Chart(ctx, config);
 }
 
 function displayChartByParticipant(TotalByParticipant) {
@@ -85,8 +102,15 @@ function displayChartByParticipant(TotalByParticipant) {
     data: data,
     options: {
       scales: {
+        x: {
+          type: "category",
+        },
         y: {
-          beginAtZero: true,
+          type: "linear",
+          min: 0,
+          ticks: {
+            stepSize: 1,
+          },
         },
       },
     },

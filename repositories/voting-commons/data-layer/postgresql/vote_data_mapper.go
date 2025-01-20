@@ -17,7 +17,6 @@ func NewVoteDataMapper(connector PostgresqlConnector) VoteDataMapper {
 	return VoteDataMapper{connector}
 }
 
-
 func (mapper VoteDataMapper) SaveOne(ctx context.Context, vote *domain.Vote) error {
 	dbpool, err := mapper.connector.openConnection(ctx)
 	if err != nil {
@@ -44,34 +43,34 @@ func (mapper VoteDataMapper) SaveMany(ctx context.Context, votes []domain.Vote) 
 		return err
 	}
 	defer dbpool.Close()
-	
-	// Create a new batch
-    batch := &pgx.Batch{}
 
-    // Queue an INSERT for each vote
-    for _, v := range votes {
-        batch.Queue(
-            `INSERT INTO votes (participant_id, timestamp) 
+	// Create a new batch
+	batch := &pgx.Batch{}
+
+	// Queue an INSERT for each vote
+	for _, v := range votes {
+		batch.Queue(
+			`INSERT INTO votes (participant_id, timestamp) 
              VALUES ($1, $2) 
              RETURNING vote_id`,
-            v.Participant.ParticipantID,
-            v.Timestamp,
-        )
-    }
+			v.Participant.ParticipantID,
+			v.Timestamp,
+		)
+	}
 
-    // Send the batch to the database
-    br := dbpool.SendBatch(ctx, batch)
-    defer br.Close()
+	// Send the batch to the database
+	br := dbpool.SendBatch(ctx, batch)
+	defer br.Close()
 
-    // Collect the generated vote_ids for each inserted record
-    for i := range votes {
-        err := br.QueryRow().Scan(&votes[i].VoteID)
-        if err != nil {
-            return fmt.Errorf("failed to insert vote at index %d: %w", i, err)
-        }
-    }
+	// Collect the generated vote_ids for each inserted record
+	for i := range votes {
+		err := br.QueryRow().Scan(&votes[i].VoteID)
+		if err != nil {
+			return fmt.Errorf("failed to insert vote at index %d: %w", i, err)
+		}
+	}
 
-    return nil
+	return nil
 
 }
 
@@ -89,15 +88,10 @@ func getGeneralTotal(dbpool *pgxpool.Pool, ctx context.Context) (*int, error) {
 }
 
 func getVotesByHour(dbpool *pgxpool.Pool, ctx context.Context) ([]domain.TotalByHour, error) {
-	query := `select
-			date_part('hour', timestamp) :: integer,
-			count(*) as votes 
-		from
-			votes
-		group by
-			DATE_PART('hour', timestamp) :: integer
-		order by 
-			DATE_PART('hour', timestamp) :: integer`
+	query := `select hourTimestamp, count(*) as votes
+		from (select to_timestamp(FLOOR(extract(epoch from timestamp) / (60 * 60)) * 60 * 60) as hourTimestamp from votes) as T
+		group by hourTimestamp
+		order by hourTimestamp`
 
 	rows, err := dbpool.Query(ctx, query)
 	if err != nil {

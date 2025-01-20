@@ -2,11 +2,12 @@ package domain
 
 import (
 	"context"
+	"time"
 )
 
 type TotalByHour struct {
 	Total int `json:"total"`
-	Hour  int `json:"hour"`
+	Hour  time.Time `json:"hour"`
 }
 type ThoroughTotals struct {
 	GeneralTotal       int

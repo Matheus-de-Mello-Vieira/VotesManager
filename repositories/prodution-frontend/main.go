@@ -4,7 +4,6 @@ import (
 	"bbb-voting/prodution-frontend/controller"
 	_ "bbb-voting/prodution-frontend/docs"
 	postgresqldatamapper "bbb-voting/voting-commons/data-layer/postgresql"
-	redisdatamapper "bbb-voting/voting-commons/data-layer/redis"
 	"bbb-voting/voting-commons/domain"
 	"context"
 	"embed"
@@ -29,16 +28,16 @@ func main() {
 
 	ctx := context.Background()
 	postgresqlConnector := postgresqldatamapper.NewPostgresqlConnector(os.Getenv("POSTGRESQL_URI"))
-	redisClient := getRedisClient(os.Getenv("REDIS_URL"))
+	// redisClient := getRedisClient(os.Getenv("REDIS_URL"))
 
 	var participantRepository domain.ParticipantRepository = postgresqldatamapper.NewParticipantDataMapper(
 		postgresqlConnector,
 	)
-	var err error
-	participantRepository, err = redisdatamapper.DecorateParticipantDataMapperWithRedis(participantRepository, *redisClient, ctx)
-	if err != nil {
-		log.Fatalf("Faled to load cache: %s", err)
-	}
+	// var err error
+	// participantRepository, err = redisdatamapper.DecorateParticipantDataMapperWithRedis(participantRepository, *redisClient, ctx)
+	// if err != nil {
+	// 	log.Fatalf("Faled to load cache: %s", err)
+	// }
 
 	frontendController := controller.NewFrontendController(
 		participantRepository,
@@ -75,7 +74,6 @@ func corsMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
-
 
 func getRedisClient(url string) *redis.Client {
 	opts, err := redis.ParseURL(url)

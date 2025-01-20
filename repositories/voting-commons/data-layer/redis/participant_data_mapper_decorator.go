@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/redis/go-redis/v9"
 )
@@ -110,7 +111,7 @@ func (mapper ParticipantDataMapperRedisDecorator) getVotesByHour(ctx context.Con
 
 	result := []domain.TotalByHour{}
 	for hourStr, totalStr := range results {
-		hour, err := strconv.Atoi(hourStr)
+		hour, err := strconv.ParseInt(hourStr, 10, 64)
 		if err != nil {
 			return nil, err
 		}
@@ -121,7 +122,7 @@ func (mapper ParticipantDataMapperRedisDecorator) getVotesByHour(ctx context.Con
 
 		element := domain.TotalByHour{
 			Total: total,
-			Hour:  hour,
+			Hour:  time.Unix(hour, 0),
 		}
 		result = append(result, element)
 	}
