@@ -18,7 +18,7 @@ func DecorateVoteDataMapperWithRedis(base domain.VoteRepository, redis redis.Cli
 }
 
 func (mapper VoteDataMapperRedisDecorator) SaveOne(ctx context.Context, vote *domain.Vote) error {
-	pipeline := mapper.redis.Pipeline()
+	pipeline := mapper.redis.TxPipeline()
 
 	mapper.saveOneRedis(ctx, vote, pipeline)
 
@@ -31,7 +31,7 @@ func (mapper VoteDataMapperRedisDecorator) SaveOne(ctx context.Context, vote *do
 }
 
 func (mapper VoteDataMapperRedisDecorator) SaveMany(ctx context.Context, votes []domain.Vote) error {
-	pipeline := mapper.redis.Pipeline()
+	pipeline := mapper.redis.TxPipeline()
 
 	for _, vote := range votes {
 		mapper.saveOneRedis(ctx, &vote, pipeline)
