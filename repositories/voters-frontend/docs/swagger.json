@@ -24,27 +24,7 @@
                 }
             }
         },
-        "/pages/totals/rough": {
-            "get": {
-                "description": "Responds with an HTML page with a rought total graph",
-                "produces": [
-                    "text/html"
-                ],
-                "tags": [
-                    "html"
-                ],
-                "summary": "Serve HTML rought total page",
-                "responses": {
-                    "200": {
-                        "description": "HTML Content",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/participants": {
+        "/api/participants": {
             "get": {
                 "description": "Responds with the list of participants",
                 "consumes": [
@@ -54,7 +34,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "participants"
+                    "api"
                 ],
                 "summary": "Get Participants",
                 "responses": {
@@ -70,7 +50,7 @@
                 }
             }
         },
-        "/votes": {
+        "/api/votes": {
             "post": {
                 "description": "Cast a Vote",
                 "consumes": [
@@ -80,12 +60,12 @@
                     "application/json"
                 ],
                 "tags": [
-                    "votes"
+                    "api"
                 ],
                 "summary": "Post Vote",
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/domain.Vote"
                         }
@@ -93,7 +73,7 @@
                 }
             }
         },
-        "/votes/totals/rough": {
+        "/api/votes/totals/rough": {
             "get": {
                 "description": "Get rough totals",
                 "consumes": [
@@ -103,7 +83,7 @@
                     "application/json"
                 ],
                 "tags": [
-                    "totals votes"
+                    "api"
                 ],
                 "summary": "Get Rough Totals",
                 "responses": {
@@ -114,6 +94,26 @@
                             "additionalProperties": {
                                 "type": "integer"
                             }
+                        }
+                    }
+                }
+            }
+        },
+        "/post-vote": {
+            "get": {
+                "description": "Responds with an HTML page with a rought total graph",
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "api"
+                ],
+                "summary": "Serve HTML rought total page",
+                "responses": {
+                    "200": {
+                        "description": "HTML Content",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }

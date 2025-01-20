@@ -35,7 +35,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/votes/totals/thorough": {
+        "/api/votes/totals/thorough": {
             "get": {
                 "description": "Get throught totals",
                 "consumes": [
@@ -45,7 +45,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "totals votes"
+                    "api"
                 ],
                 "summary": "Get Thorough Totals",
                 "responses": {
@@ -84,7 +84,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "hour": {
-                    "type": "integer"
+                    "type": "string"
                 },
                 "total": {
                     "type": "integer"

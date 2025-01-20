@@ -12,11 +12,11 @@ import (
 
 // @Summary Get Rough Totals
 // @Description Get rough totals
-// @Tags totals votes
+// @Tags api
 // @Accept  json
 // @Produce  json
 // @Success 200 {object} map[string]int
-// @Router /votes/totals/rough [get]
+// @Router /api/votes/totals/rough [get]
 func (controller *FrontendController) GetVotesRoughTotalsHandler(responseWriter http.ResponseWriter, request *http.Request) {
 	if request.Method != http.MethodGet {
 		http.Error(responseWriter, "Method Not Allowed", http.StatusMethodNotAllowed)
@@ -47,12 +47,12 @@ func formatRoughTotals(totalsMap map[domain.Participant]int) map[string]int {
 
 // @Summary Post Vote
 // @Description Cast a Vote
-// @Tags votes
+// @Tags api
 // @Accept  json
 // @Produce  json
 // @Body postVoteBodyModel
 // @Success 201 {object} domain.Vote
-// @Router /votes [post]
+// @Router /api/votes [post]
 func (controller *FrontendController) PostVoteHandler(responseWriter http.ResponseWriter, request *http.Request) {
 	if request.Method != http.MethodPost {
 		http.Error(responseWriter, "Method Not Allowed", http.StatusMethodNotAllowed)
@@ -79,10 +79,10 @@ func (controller *FrontendController) PostVoteHandler(responseWriter http.Respon
 
 // @Summary Serve HTML rought total page
 // @Description Responds with an HTML page with a rought total graph
-// @Tags html
+// @Tags api
 // @Produce html
 // @Success 200 {string} string "HTML Content"
-// @Router /pages/totals/rough [get]
+// @Router /post-vote [get]
 func (controller *FrontendController) LoadRoughTotalPage(responseWriter http.ResponseWriter, request *http.Request) {
 	tmpl, err := template.ParseFS(controller.embedTemplates, "rough_results.html")
 	if err != nil {

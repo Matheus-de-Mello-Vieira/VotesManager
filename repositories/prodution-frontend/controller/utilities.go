@@ -26,10 +26,11 @@ func NewFrontendController(getThoroughTotalsUserCase usercases.GetThoroughTotals
 
 func (frontendController *FrontendController) GetServerMux() http.Handler {
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", frontendController.GetPage)
-	mux.HandleFunc("/votes/totals/thorough", frontendController.GetThoroughTotals)
 
+	mux.HandleFunc("/", frontendController.GetPage)
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(frontendController.staticFiles))))
+
+	mux.HandleFunc("/api/votes/totals/thorough", frontendController.GetThoroughTotals)
 
 	configSwagger()
 	mux.Handle("/swagger/", httpSwagger.WrapHandler)

@@ -15,7 +15,7 @@ definitions:
   domain.TotalByHour:
     properties:
       hour:
-        type: integer
+        type: string
       total:
         type: integer
     type: object
@@ -35,7 +35,7 @@ paths:
       summary: Serve HTML thorough total page
       tags:
       - html
-  /votes/totals/thorough:
+  /api/votes/totals/thorough:
     get:
       consumes:
       - application/json
@@ -49,5 +49,5 @@ paths:
             $ref: '#/definitions/controller.ThoroughTotalsResponseModel'
       summary: Get Thorough Totals
       tags:
-      - totals votes
+      - api
 swagger: "2.0"

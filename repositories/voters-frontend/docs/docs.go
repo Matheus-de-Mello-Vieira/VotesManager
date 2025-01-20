@@ -35,27 +35,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/pages/totals/rough": {
-            "get": {
-                "description": "Responds with an HTML page with a rought total graph",
-                "produces": [
-                    "text/html"
-                ],
-                "tags": [
-                    "html"
-                ],
-                "summary": "Serve HTML rought total page",
-                "responses": {
-                    "200": {
-                        "description": "HTML Content",
-                        "schema": {
-                            "type": "string"
-                        }
-                    }
-                }
-            }
-        },
-        "/participants": {
+        "/api/participants": {
             "get": {
                 "description": "Responds with the list of participants",
                 "consumes": [
@@ -65,7 +45,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "participants"
+                    "api"
                 ],
                 "summary": "Get Participants",
                 "responses": {
@@ -81,7 +61,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/votes": {
+        "/api/votes": {
             "post": {
                 "description": "Cast a Vote",
                 "consumes": [
@@ -91,12 +71,12 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "votes"
+                    "api"
                 ],
                 "summary": "Post Vote",
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "$ref": "#/definitions/domain.Vote"
                         }
@@ -104,7 +84,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/votes/totals/rough": {
+        "/api/votes/totals/rough": {
             "get": {
                 "description": "Get rough totals",
                 "consumes": [
@@ -114,7 +94,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "totals votes"
+                    "api"
                 ],
                 "summary": "Get Rough Totals",
                 "responses": {
@@ -125,6 +105,26 @@ const docTemplate = `{
                             "additionalProperties": {
                                 "type": "integer"
                             }
+                        }
+                    }
+                }
+            }
+        },
+        "/post-vote": {
+            "get": {
+                "description": "Responds with an HTML page with a rought total graph",
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "api"
+                ],
+                "summary": "Serve HTML rought total page",
+                "responses": {
+                    "200": {
+                        "description": "HTML Content",
+                        "schema": {
+                            "type": "string"
                         }
                     }
                 }

@@ -31,20 +31,7 @@ paths:
       summary: Serve HTML index page
       tags:
       - html
-  /pages/totals/rough:
-    get:
-      description: Responds with an HTML page with a rought total graph
-      produces:
-      - text/html
-      responses:
-        "200":
-          description: HTML Content
-          schema:
-            type: string
-      summary: Serve HTML rought total page
-      tags:
-      - html
-  /participants:
+  /api/participants:
     get:
       consumes:
       - application/json
@@ -60,8 +47,8 @@ paths:
             type: array
       summary: Get Participants
       tags:
-      - participants
-  /votes:
+      - api
+  /api/votes:
     post:
       consumes:
       - application/json
@@ -69,14 +56,14 @@ paths:
       produces:
       - application/json
       responses:
-        "200":
-          description: OK
+        "201":
+          description: Created
           schema:
             $ref: '#/definitions/domain.Vote'
       summary: Post Vote
       tags:
-      - votes
-  /votes/totals/rough:
+      - api
+  /api/votes/totals/rough:
     get:
       consumes:
       - application/json
@@ -92,5 +79,18 @@ paths:
             type: object
       summary: Get Rough Totals
       tags:
-      - totals votes
+      - api
+  /post-vote:
+    get:
+      description: Responds with an HTML page with a rought total graph
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: HTML Content
+          schema:
+            type: string
+      summary: Serve HTML rought total page
+      tags:
+      - api
 swagger: "2.0"

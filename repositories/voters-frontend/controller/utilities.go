@@ -36,11 +36,11 @@ func (frontendController *FrontendController) GetServerMux() http.Handler {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", frontendController.IndexHandler)
-	mux.HandleFunc("/pages/totals/rough", frontendController.LoadRoughTotalPage)
+	mux.HandleFunc("/post-vote", frontendController.LoadRoughTotalPage)
 
-	mux.HandleFunc("/votes", frontendController.PostVoteHandler)
-	mux.HandleFunc("/participants", frontendController.GetParticipantsHandler)
-	mux.HandleFunc("/votes/totals/rough", frontendController.GetVotesRoughTotalsHandler)
+	mux.HandleFunc("/api/votes", frontendController.PostVoteHandler)
+	mux.HandleFunc("/api/participants", frontendController.GetParticipantsHandler)
+	mux.HandleFunc("/api/votes/totals/rough", frontendController.GetVotesRoughTotalsHandler)
 
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(frontendController.embedStatic))))
 	mux.Handle("/swagger/", httpSwagger.WrapHandler)

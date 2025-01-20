@@ -6,7 +6,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 async function getTotals(retries = 3) {
-  return await makeRequest(`/votes/totals/thorough`, retries);
+  return await makeRequest(`/api/votes/totals/thorough`, retries);
 }
 
 async function makeRequest(url, retries = 3) {
