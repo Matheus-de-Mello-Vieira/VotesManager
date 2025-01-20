@@ -68,7 +68,7 @@ func getParticipantRepository(postgresqlConnector *postgresqldatamapper.Postgres
 
 	result = postgresqldatamapper.NewParticipantDataMapper(postgresqlConnector)
 	result = redisdatamapper.DecorateParticipantRepository(result, redisClient, redisCacheTTL)
-	result = localdatamapper.DecorateParticipantDataMapperWithLocalCacheDecorator(result, localCacheTTL)
+	result = localdatamapper.DecorateParticipantRepository(result, localCacheTTL)
 
 	return result
 }

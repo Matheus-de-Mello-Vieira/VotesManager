@@ -3,9 +3,9 @@ package main
 import (
 	"bbb-voting/prodution-frontend/controller"
 	_ "bbb-voting/prodution-frontend/docs"
+	localdatamapper "bbb-voting/voting-commons/data-layer/local-cache"
 	postgresqldatamapper "bbb-voting/voting-commons/data-layer/postgresql"
 	redisdatamapper "bbb-voting/voting-commons/data-layer/redis"
-	localdatamapper "bbb-voting/voting-commons/data-layer/local-cache"
 	"bbb-voting/voting-commons/domain"
 	usercases "bbb-voting/voting-commons/user-cases"
 	"context"
@@ -66,7 +66,7 @@ func getParticipantRepository(postgresqlConnector *postgresqldatamapper.Postgres
 
 	result = postgresqldatamapper.NewParticipantDataMapper(postgresqlConnector)
 	result = redisdatamapper.DecorateParticipantRepository(result, redisClient, redisCacheTTL)
-	result = localdatamapper.DecorateParticipantDataMapperWithLocalCacheDecorator(result, localCacheTTL)
+	result = localdatamapper.DecorateParticipantRepository(result, localCacheTTL)
 
 	return result
 }

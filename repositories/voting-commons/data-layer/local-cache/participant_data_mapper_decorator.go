@@ -19,7 +19,7 @@ type ParticipantDataMapperLocalCacheDecorator struct {
 	cm   *cacheManager
 }
 
-func DecorateParticipantDataMapperWithLocalCacheDecorator(base domain.ParticipantRepository, ttl time.Duration) *ParticipantDataMapperLocalCacheDecorator {
+func DecorateParticipantRepository(base domain.ParticipantRepository, ttl time.Duration) *ParticipantDataMapperLocalCacheDecorator {
 	return &ParticipantDataMapperLocalCacheDecorator{base: base, cm: &cacheManager{ttl: ttl}}
 }
 
