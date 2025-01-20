@@ -36,7 +36,7 @@ func (frontendController *FrontendController) GetServerMux() http.Handler {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", frontendController.IndexHandler)
-	mux.HandleFunc("/post-vote", frontendController.LoadRoughTotalPage)
+	mux.HandleFunc("/after-vote", frontendController.LoadRoughTotalPage)
 
 	mux.HandleFunc("/api/votes", frontendController.PostVoteHandler)
 	mux.HandleFunc("/api/participants", frontendController.GetParticipantsHandler)

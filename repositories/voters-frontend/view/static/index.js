@@ -46,7 +46,7 @@ async function onVote(participantId) {
     return;
   }
 
-  window.location.replace(`post-vote`);
+  window.location.replace(`after-vote`);
 }
 
 function checkCaptchaOnSubmit(event) {

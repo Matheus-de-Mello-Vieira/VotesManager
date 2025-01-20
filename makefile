@@ -22,8 +22,6 @@ unit_test:
 load_test:
 	( docker compose up k6 )
 
-
-
 GOPATH = $(shell cd repositories ; go env GOPATH)
 swagger:
 	cd repositories ; \

@@ -56,12 +56,12 @@ class Tester {
 
   test() {
     this.testGet("");
-    this.testGet("participants");
+    this.testGet("api/participants");
 
     this.testVote();
 
-    this.testGet("pages/totals/rough");
-    this.testGet("votes/totals/rough");
+    this.testGet("after-vote");
+    this.testGet("api/votes/totals/rough");
   }
 
   testGet(route) {
@@ -79,7 +79,7 @@ class Tester {
     });
 
     const headers = { "Content-Type": "application/json" };
-    const response = http.post(`${this.url}/votes`, payload, {
+    const response = http.post(`/api/${this.url}/votes`, payload, {
       headers: headers,
     });
 

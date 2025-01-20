@@ -79,10 +79,10 @@ func (controller *FrontendController) PostVoteHandler(responseWriter http.Respon
 
 // @Summary Serve HTML rought total page
 // @Description Responds with an HTML page with a rought total graph
-// @Tags api
+// @Tags html
 // @Produce html
 // @Success 200 {string} string "HTML Content"
-// @Router /post-vote [get]
+// @Router /after-vote [get]
 func (controller *FrontendController) LoadRoughTotalPage(responseWriter http.ResponseWriter, request *http.Request) {
 	tmpl, err := template.ParseFS(controller.embedTemplates, "rough_results.html")
 	if err != nil {

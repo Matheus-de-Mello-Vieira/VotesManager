@@ -31,6 +31,19 @@ paths:
       summary: Serve HTML index page
       tags:
       - html
+  /after-vote:
+    get:
+      description: Responds with an HTML page with a rought total graph
+      produces:
+      - text/html
+      responses:
+        "200":
+          description: HTML Content
+          schema:
+            type: string
+      summary: Serve HTML rought total page
+      tags:
+      - html
   /api/participants:
     get:
       consumes:
@@ -78,19 +91,6 @@ paths:
               type: integer
             type: object
       summary: Get Rough Totals
-      tags:
-      - api
-  /post-vote:
-    get:
-      description: Responds with an HTML page with a rought total graph
-      produces:
-      - text/html
-      responses:
-        "200":
-          description: HTML Content
-          schema:
-            type: string
-      summary: Serve HTML rought total page
       tags:
       - api
 swagger: "2.0"

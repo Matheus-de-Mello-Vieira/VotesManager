@@ -35,6 +35,26 @@ const docTemplate = `{
                 }
             }
         },
+        "/after-vote": {
+            "get": {
+                "description": "Responds with an HTML page with a rought total graph",
+                "produces": [
+                    "text/html"
+                ],
+                "tags": [
+                    "html"
+                ],
+                "summary": "Serve HTML rought total page",
+                "responses": {
+                    "200": {
+                        "description": "HTML Content",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/api/participants": {
             "get": {
                 "description": "Responds with the list of participants",
@@ -105,26 +125,6 @@ const docTemplate = `{
                             "additionalProperties": {
                                 "type": "integer"
                             }
-                        }
-                    }
-                }
-            }
-        },
-        "/post-vote": {
-            "get": {
-                "description": "Responds with an HTML page with a rought total graph",
-                "produces": [
-                    "text/html"
-                ],
-                "tags": [
-                    "api"
-                ],
-                "summary": "Serve HTML rought total page",
-                "responses": {
-                    "200": {
-                        "description": "HTML Content",
-                        "schema": {
-                            "type": "string"
                         }
                     }
                 }
