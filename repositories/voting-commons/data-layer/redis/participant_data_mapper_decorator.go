@@ -2,8 +2,10 @@ package redisdatamapper
 
 import (
 	"bbb-voting/voting-commons/domain"
+	"cmp"
 	"context"
 	"fmt"
+	"slices"
 	"strconv"
 	"time"
 
@@ -126,6 +128,10 @@ func (mapper ParticipantDataMapperRedisDecorator) getVotesByHour(ctx context.Con
 		}
 		result = append(result, element)
 	}
+
+	slices.SortFunc(result, func(a, b domain.TotalByHour) int {
+		return cmp.Compare(a.Hour.Unix(), b.Hour.Unix())
+	})
 
 	return result, nil
 }
