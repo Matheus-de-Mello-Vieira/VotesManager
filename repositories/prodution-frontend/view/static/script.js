@@ -46,15 +46,15 @@ function displayChartByHour(totalByHour) {
       {
         label: "Totais por hora",
         data: totals,
-        fill: false,
-        borderColor: "rgb(75, 192, 192)",
-        tension: 0.1,
+        backgroundColor: ["rgba(54, 162, 235, 0.2)"],
+        borderColor: ["rgba(54, 162, 235, 1)"],
+        borderWidth: 1,
       },
     ],
   };
 
   const config = {
-    type: "line",
+    type: "bar",
     data: data,
     options: {
       scales: {
