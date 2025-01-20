@@ -1,7 +1,7 @@
 package controller
 
 import (
-	"bbb-voting/voting-commons/domain"
+	usercases "bbb-voting/voting-commons/user-cases"
 	"context"
 	"encoding/json"
 	"io"
@@ -13,20 +13,20 @@ import (
 )
 
 type FrontendController struct {
-	participantRepository domain.ParticipantRepository
-	voteRepository        domain.VoteRepository
-	ctx                   context.Context
-	embedTemplates        fs.FS
-	embedStatic           fs.FS
+	getRoughTotalsUserCase  usercases.GetRoughTotalsUserCase
+	getParticipantsUserCase usercases.GetParticipantsUserCase
+	castVoteUserCase        usercases.CastVoteUserCase
+	embedTemplates          fs.FS
+	embedStatic             fs.FS
 }
 
-func NewFrontendController(participantRepository domain.ParticipantRepository, voteRepository domain.VoteRepository, ctx context.Context, embedTemplates fs.FS, embedStatic fs.FS) FrontendController {
+func NewFrontendController(getRoughTotalsUserCase usercases.GetRoughTotalsUserCase, getParticipantsUserCase usercases.GetParticipantsUserCase, castVoteUserCase usercases.CastVoteUserCase, ctx context.Context, embedTemplates fs.FS, embedStatic fs.FS) FrontendController {
 	return FrontendController{
-		participantRepository: participantRepository,
-		voteRepository:        voteRepository,
-		ctx:                   ctx,
-		embedTemplates:        embedTemplates,
-		embedStatic:           embedStatic,
+		getRoughTotalsUserCase:  getRoughTotalsUserCase,
+		getParticipantsUserCase: getParticipantsUserCase,
+		castVoteUserCase:        castVoteUserCase,
+		embedTemplates:          embedTemplates,
+		embedStatic:             embedStatic,
 	}
 }
 

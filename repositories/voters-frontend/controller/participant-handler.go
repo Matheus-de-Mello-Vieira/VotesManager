@@ -39,7 +39,7 @@ func (controller *FrontendController) GetParticipantsHandler(responseWriter http
 		return
 	}
 
-	participants, err := controller.participantRepository.FindAll(controller.ctx)
+	participants, err := controller.getParticipantsUserCase.Execute()
 	if err != nil {
 		handleInternalServerError(responseWriter, err)
 		return

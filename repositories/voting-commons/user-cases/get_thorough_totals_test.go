@@ -1,6 +1,7 @@
 package usercases
 
 import (
+	"bbb-voting/voting-commons/domain"
 	mocksdatamappers "bbb-voting/voting-commons/tests"
 	"context"
 
@@ -10,17 +11,20 @@ import (
 
 var _ = Describe("GetThoroughTotals", func() {
 	var (
-		ctx        context.Context
-		controller GetThoroughTotalsUserCase
+		ctx                   context.Context
+		sut                   GetThoroughTotalsUserCase
+		participantRepository domain.ParticipantRepository
 	)
 	BeforeEach(func() {
 		ctx = context.Background()
 
-		controller = NewGetThoroughTotalsUserCase(mocksdatamappers.MockedParticipantDataMapper{}, ctx)
+		participantRepository = mocksdatamappers.MockedParticipantDataMapper{}
+
+		sut = NewGetThoroughTotalsUserCase(participantRepository, ctx)
 	})
 
 	It("should return thorough totals", func() {
-		result, err := controller.Execute()
+		result, err := sut.Execute()
 
 		Expect(err).To(BeNil())
 

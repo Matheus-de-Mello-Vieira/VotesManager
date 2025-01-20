@@ -2,10 +2,12 @@ package controller
 
 import (
 	"bbb-voting/voting-commons/domain"
+	usercases "bbb-voting/voting-commons/user-cases"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"html/template"
 	"net/http"
-	"time"
 )
 
 // @Summary Get Rough Totals
@@ -21,7 +23,7 @@ func (controller *FrontendController) GetVotesRoughTotalsHandler(responseWriter 
 		return
 	}
 
-	totalsMap, err := controller.participantRepository.GetRoughTotals(controller.ctx)
+	totalsMap, err := controller.getRoughTotalsUserCase.Execute()
 	if err != nil {
 		handleInternalServerError(responseWriter, err)
 		return
@@ -43,10 +45,6 @@ func formatRoughTotals(totalsMap map[domain.Participant]int) map[string]int {
 	return result
 }
 
-type postVoteBodyModel struct {
-	ParticipantID int `json:"participant_id"`
-}
-
 // @Summary Post Vote
 // @Description Cast a Vote
 // @Tags votes
@@ -61,19 +59,18 @@ func (controller *FrontendController) PostVoteHandler(responseWriter http.Respon
 		return
 	}
 
-	body := postVoteBodyModel{}
+	body := usercases.CastVoteDTO{}
 	loadBody(responseWriter, request, &body)
 
-	participant, _ := controller.participantRepository.FindByID(controller.ctx, body.ParticipantID)
-
-	if participant == nil {
-		http.Error(responseWriter, "Participant not found", http.StatusNotFound)
+	vote, err := controller.castVoteUserCase.Execute(&body)
+	if err != nil {
+		if errors.Is(err, usercases.ErrParticipantNotFound) {
+			http.Error(responseWriter, fmt.Sprint(err), http.StatusNotFound)
+		} else {
+			handleInternalServerError(responseWriter, err)
+		}
 		return
 	}
-
-	vote := domain.Vote{Participant: *participant, Timestamp: time.Now()}
-
-	controller.voteRepository.SaveOne(controller.ctx, &vote)
 
 	responseWriter.Header().Set("Content-Type", "application/json")
 	responseWriter.WriteHeader(http.StatusCreated)

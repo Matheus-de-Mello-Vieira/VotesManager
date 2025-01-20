@@ -6,6 +6,7 @@ import (
 	postgresqldatamapper "bbb-voting/voting-commons/data-layer/postgresql"
 	redisdatamapper "bbb-voting/voting-commons/data-layer/redis"
 	"bbb-voting/voting-commons/domain"
+	usercases "bbb-voting/voting-commons/user-cases"
 	"context"
 	"embed"
 	"io/fs"
@@ -30,23 +31,15 @@ func main() {
 	postgresqlConnector := postgresqldatamapper.NewPostgresqlConnector(os.Getenv("POSTGRESQL_URI"))
 	redisClient := getRedisClient(os.Getenv("REDIS_URL"))
 
-	var participantRepository domain.ParticipantRepository = postgresqldatamapper.NewParticipantDataMapper(
-		postgresqlConnector,
-	)
-	var err error
-	participantRepository, err = redisdatamapper.DecorateParticipantDataMapperWithRedis(participantRepository, *redisClient, ctx)
-	if err != nil {
-		log.Fatalf("Faled to load cache: %s", err)
-	}
+	participantRepository := getParticipantRepository(&postgresqlConnector, redisClient, ctx)
+	voteRepository := getVotesRepository([]string{os.Getenv("KAFKA_URI")}, redisClient)
 
-	var voteRepository domain.VoteRepository = kafkadatamapper.NewVoteDataMapper(
-		[]string{os.Getenv("KAFKA_URI")}, "votes", 30,
-	)
-	voteRepository = redisdatamapper.DecorateVoteDataMapperWithRedis(voteRepository, *redisClient)
+	getRoughTotalsUserCase := usercases.NewGetRoughTotalsUserCase(participantRepository, ctx)
+	getParticipantsUserCase := usercases.NewGetParticipantsUserCase(participantRepository, ctx)
+	castVoteUserCase := usercases.NewCastVoteUserCase(voteRepository, participantRepository, ctx)
 
 	frontendController := controller.NewFrontendController(
-		participantRepository,
-		voteRepository,
+		getRoughTotalsUserCase, getParticipantsUserCase, castVoteUserCase,
 		ctx, templates, staticFiles,
 	)
 
@@ -64,4 +57,22 @@ func getRedisClient(url string) *redis.Client {
 		log.Fatalf("Failed to parse Redis URL: %v", err)
 	}
 	return redis.NewClient(opts)
+}
+func getParticipantRepository(postgresqlConnector *postgresqldatamapper.PostgresqlConnector, redisClient *redis.Client, ctx context.Context) domain.ParticipantRepository {
+	var base = postgresqldatamapper.NewParticipantDataMapper(
+		postgresqlConnector,
+	)
+
+	result, err := redisdatamapper.DecorateParticipantDataMapperWithRedis(base, redisClient, ctx)
+	if err != nil {
+		log.Fatalf("Faled to load cache: %s", err)
+	}
+
+	return result
+}
+func getVotesRepository(brokers []string, redisClient *redis.Client) domain.VoteRepository {
+	var base domain.VoteRepository = kafkadatamapper.NewVoteDataMapper(
+		brokers, "votes", 30,
+	)
+	return redisdatamapper.DecorateVoteDataMapperWithRedis(base, *redisClient)
 }
