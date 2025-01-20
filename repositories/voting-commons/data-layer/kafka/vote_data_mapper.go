@@ -21,36 +21,67 @@ func NewVoteDataMapper(brokers []string, topic string, aggregateSizeInSeconds in
 }
 
 func (mapper VoteDataMapper) SaveOne(ctx context.Context, vote *domain.Vote) error {
+	producer, err := mapper.getProducer()
+	if err != nil {
+		log.Fatalf("Failed to create Kafka producer: %v", err)
+		return err
+	}
+	defer producer.Close()
+
+	err = mapper.produce(producer, vote)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("1 message sent to Kafka topic %s", mapper.topic)
+	return nil
+}
+
+func (mapper VoteDataMapper) SaveMany(ctx context.Context, votes []domain.Vote) error {
+	producer, err := mapper.getProducer()
+	if err != nil {
+		log.Fatalf("Failed to create Kafka producer: %v", err)
+		return err
+	}
+	defer producer.Close()
+
+	for _, vote := range votes {
+		err = mapper.produce(producer, &vote)
+		if err != nil {
+			return err
+		}
+	}
+
+	log.Printf("%d message sent to Kafka topic %s", len(votes), mapper.topic)
+	return nil
+}
+
+func (mapper VoteDataMapper) getProducer() (sarama.SyncProducer, error) {
 	config := sarama.NewConfig()
 	config.Producer.RequiredAcks = sarama.WaitForAll
 	config.Producer.Retry.Max = 5
 	config.Producer.Return.Successes = true
 
-	producer, err := sarama.NewSyncProducer(mapper.brokers, config)
-	if err != nil {
-		log.Fatalf("Failed to create Kafka producer: %v", err)
-	}
-	defer producer.Close()
+	return sarama.NewSyncProducer(mapper.brokers, config)
+}
 
-	// Serialize the vote to JSON
+func (mapper VoteDataMapper) produce(producer sarama.SyncProducer, vote *domain.Vote) error {
 	voteJSON, err := json.Marshal(vote)
 	if err != nil {
-		log.Fatalf("Failed to serialize vote to JSON: %v", err)
+		return fmt.Errorf("failed to serialize vote to JSON: %v", err)
 	}
 
-	// Publish the vote JSON to the Kafka topic
 	msg := &sarama.ProducerMessage{
 		Topic: mapper.topic,
 		Key:   sarama.StringEncoder(mapper.getPartitionKey(vote)),
 		Value: sarama.StringEncoder(voteJSON),
 	}
 
-	partition, offset, err := producer.SendMessage(msg)
+	_, _, err = producer.SendMessage(msg)
 	if err != nil {
-		log.Fatalf("Failed to send message to Kafka: %v", err)
+		return fmt.Errorf("failed to send message to Kafka: %v", err)
 	}
 
-	log.Printf("Message sent to Kafka topic %s (partition: %d, offset: %d)", mapper.topic, partition, offset)
 	return nil
 }
 
@@ -62,8 +93,4 @@ func (mapper VoteDataMapper) TruncateUnix(vote *domain.Vote) int64 {
 	result := vote.Timestamp.Unix() / int64(mapper.aggregateSizeInSeconds)
 
 	return result
-}
-
-func (mapper VoteDataMapper) SaveMany(ctx context.Context, votes []domain.Vote) error {
-	return fmt.Errorf("not implemented yet")
 }
