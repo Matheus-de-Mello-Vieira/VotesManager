@@ -1,19 +1,17 @@
 definitions:
+  controller.PostVoteRequestBody:
+    properties:
+      captcha_token:
+        type: string
+      participant_id:
+        type: integer
+    type: object
   domain.Participant:
     properties:
       id:
         type: integer
       name:
         type: string
-    type: object
-  domain.Vote:
-    properties:
-      participant:
-        $ref: '#/definitions/domain.Participant'
-      timestamp:
-        type: string
-      voteID:
-        type: integer
     type: object
 info:
   contact: {}
@@ -72,7 +70,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/domain.Vote'
+            $ref: '#/definitions/controller.PostVoteRequestBody'
       summary: Post Vote
       tags:
       - api

@@ -1,7 +1,7 @@
 package controller
 
 import (
-	usercases "bbb-voting/voting-commons/user-cases"
+	"bbb-voting/voting-commons/service"
 	"io/fs"
 	"net/http"
 
@@ -11,12 +11,12 @@ import (
 )
 
 type FrontendController struct {
-	getThoroughTotalsUserCase usercases.GetThoroughTotalsUserCase
+	getThoroughTotalsUserCase service.GetThoroughTotalsUserCase
 	templates                 fs.FS
 	staticFiles               fs.FS
 }
 
-func NewFrontendController(getThoroughTotalsUserCase usercases.GetThoroughTotalsUserCase, templates fs.FS, staticFiles fs.FS) FrontendController {
+func NewFrontendController(getThoroughTotalsUserCase service.GetThoroughTotalsUserCase, templates fs.FS, staticFiles fs.FS) FrontendController {
 	return FrontendController{
 		getThoroughTotalsUserCase: getThoroughTotalsUserCase,
 		templates:                 templates,

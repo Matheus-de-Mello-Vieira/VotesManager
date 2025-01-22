@@ -1,4 +1,4 @@
-package usercases
+package service
 
 import (
 	"bbb-voting/voting-commons/domain"

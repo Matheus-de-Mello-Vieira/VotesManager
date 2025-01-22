@@ -114,16 +114,22 @@ Por questão simplicidade, eu vou manter tudo no mesmo repositório, mas seria i
 * `votes-register`: responsável por consumir a fila do Kafka e salvar os dados agrupados no banco de dados
 * `prodution-frontend`: responsável pela interface dos telespectadores
 
-A estrutura interna do código é inspirada na arquitura limpa, onde teria uma camada de serviço que conhece a de domínio, e uma camada de dados que conhece a de serviço e a de domínio.
+A estrutura interna do código é inspirada na arquitura limpa, onde tem as camadas:
+* `domain`: responsável pelas entidades, não conhece nenhuma outra camada
+* `service`: responsável pelos casos de uso, conhece apenas a camada `domain`
+* `controller`: responsável pela API, conhece as camadas `domain` e `service`
+* `data-layer`: responsável pela comunicação com os bancos de dados e kafka, conhece todos as outras camadas
 
-* Vale destacar o papel que inversão de dependência fez, principalmente a camada de dados, que ao longo das tentativas eu só precisei adicionar novo código e não modicar o já existente, ou me deu muito menos trabalho.
+  
 
-## Coisas que implementaria se tivesse tempo
+Vale destacar o papel que inversão de dependência fez, principalmente a camada de dados, que ao longo das tentativas eu só precisei adicionar novo código e não modicar o já existente, ou me deu muito menos trabalho.
+
+## Coisas que implementaria se fosse um projeto real
 
 * Separa os repositórios e os módulos
   * incluir o `voting-commons` em algum repositório de artefatos, de forma que cada componente pode puxar uma versão diferente dele.
-* incluir imagens aos participantes
-*  criação de um pipeline CI/CD
+* Proteção contra bots e DDOS, como rate limite
+* Monitoramento de logs e de consumo de recursos
+* Incluir imagens aos participantes
+* Criação de um pipeline CI/CD
   * SonarQube
-* implementar realmente o recaptcha
-* usar um loadbalancer e configurar escalabilidade horizontal dos componentes

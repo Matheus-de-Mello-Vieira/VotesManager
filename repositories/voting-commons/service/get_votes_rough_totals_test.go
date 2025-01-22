@@ -1,4 +1,4 @@
-package usercases
+package service
 
 import (
 	"bbb-voting/voting-commons/domain"
@@ -12,8 +12,8 @@ import (
 
 var _ = Describe("GetRoughTotals", func() {
 	var (
-		ctx                   context.Context
-		sut                   GetRoughTotalsUserCase
+		ctx            context.Context
+		sut            GetRoughTotalsUserCase
 		voteRepository domain.VoteRepository
 	)
 	BeforeEach(func() {

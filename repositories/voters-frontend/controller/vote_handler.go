@@ -2,7 +2,7 @@ package controller
 
 import (
 	"bbb-voting/voting-commons/domain"
-	usercases "bbb-voting/voting-commons/user-cases"
+	"bbb-voting/voting-commons/service"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -45,13 +45,17 @@ func formatRoughTotals(totalsMap map[domain.Participant]int) map[string]int {
 	return result
 }
 
+type PostVoteRequestBody struct {
+	*service.CastVoteDTO
+	*recaptchaBody
+}
 // @Summary Post Vote
 // @Description Cast a Vote
 // @Tags api
 // @Accept  json
 // @Produce  json
 // @Body postVoteBodyModel
-// @Success 201 {object} domain.Vote
+// @Success 201 {object} PostVoteRequestBody
 // @Router /api/votes [post]
 func (controller *FrontendController) PostVoteHandler(responseWriter http.ResponseWriter, request *http.Request) {
 	if request.Method != http.MethodPost {
@@ -59,7 +63,7 @@ func (controller *FrontendController) PostVoteHandler(responseWriter http.Respon
 		return
 	}
 
-	body := usercases.CastVoteDTO{}
+	body := service.CastVoteDTO{}
 	err := loadBody(responseWriter, request, &body)
 	if err != nil {
 		return
@@ -67,7 +71,7 @@ func (controller *FrontendController) PostVoteHandler(responseWriter http.Respon
 
 	vote, err := controller.castVoteUserCase.Execute(&body)
 	if err != nil {
-		if errors.Is(err, usercases.ErrParticipantNotFound) {
+		if errors.Is(err, service.ErrParticipantNotFound) {
 			http.Error(responseWriter, fmt.Sprint(err), http.StatusNotFound)
 		} else {
 			handleInternalServerError(responseWriter, err)

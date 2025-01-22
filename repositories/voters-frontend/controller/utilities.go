@@ -1,7 +1,7 @@
 package controller
 
 import (
-	usercases "bbb-voting/voting-commons/user-cases"
+	"bbb-voting/voting-commons/service"
 	"bytes"
 	"context"
 	"encoding/json"
@@ -16,14 +16,14 @@ import (
 )
 
 type FrontendController struct {
-	getRoughTotalsUserCase  usercases.GetRoughTotalsUserCase
-	getParticipantsUserCase usercases.GetParticipantsUserCase
-	castVoteUserCase        usercases.CastVoteUserCase
+	getRoughTotalsUserCase  service.GetRoughTotalsUserCase
+	getParticipantsUserCase service.GetParticipantsUserCase
+	castVoteUserCase        service.CastVoteUserCase
 	embedTemplates          fs.FS
 	embedStatic             fs.FS
 }
 
-func NewFrontendController(getRoughTotalsUserCase usercases.GetRoughTotalsUserCase, getParticipantsUserCase usercases.GetParticipantsUserCase, castVoteUserCase usercases.CastVoteUserCase, ctx context.Context, embedTemplates fs.FS, embedStatic fs.FS) FrontendController {
+func NewFrontendController(getRoughTotalsUserCase service.GetRoughTotalsUserCase, getParticipantsUserCase service.GetParticipantsUserCase, castVoteUserCase service.CastVoteUserCase, ctx context.Context, embedTemplates fs.FS, embedStatic fs.FS) FrontendController {
 	return FrontendController{
 		getRoughTotalsUserCase:  getRoughTotalsUserCase,
 		getParticipantsUserCase: getParticipantsUserCase,

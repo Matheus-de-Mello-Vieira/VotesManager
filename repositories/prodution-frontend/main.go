@@ -7,7 +7,7 @@ import (
 	postgresqldatamapper "bbb-voting/voting-commons/data-layer/postgresql"
 	redisdatamapper "bbb-voting/voting-commons/data-layer/redis"
 	"bbb-voting/voting-commons/domain"
-	usercases "bbb-voting/voting-commons/user-cases"
+	"bbb-voting/voting-commons/service"
 	"context"
 	"embed"
 	"io/fs"
@@ -36,7 +36,7 @@ func main() {
 	participantRepository := getParticipantRepository(&postgresqlConnector, redisClient)
 	voteRepository := getVotesRepository(&postgresqlConnector, participantRepository, redisClient)
 
-	getThoroughTotalsUserCase := usercases.NewGetThoroughTotalsUserCaseImpl(voteRepository, ctx)
+	getThoroughTotalsUserCase := service.NewGetThoroughTotalsUserCaseImpl(voteRepository, ctx)
 
 	frontendController := controller.NewFrontendController(
 		getThoroughTotalsUserCase,

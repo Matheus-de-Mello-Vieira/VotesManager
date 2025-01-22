@@ -98,7 +98,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "$ref": "#/definitions/domain.Vote"
+                            "$ref": "#/definitions/controller.PostVoteRequestBody"
                         }
                     }
                 }
@@ -132,6 +132,17 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "controller.PostVoteRequestBody": {
+            "type": "object",
+            "properties": {
+                "captcha_token": {
+                    "type": "string"
+                },
+                "participant_id": {
+                    "type": "integer"
+                }
+            }
+        },
         "domain.Participant": {
             "type": "object",
             "properties": {
@@ -140,20 +151,6 @@ const docTemplate = `{
                 },
                 "name": {
                     "type": "string"
-                }
-            }
-        },
-        "domain.Vote": {
-            "type": "object",
-            "properties": {
-                "participant": {
-                    "$ref": "#/definitions/domain.Participant"
-                },
-                "timestamp": {
-                    "type": "string"
-                },
-                "voteID": {
-                    "type": "integer"
                 }
             }
         }

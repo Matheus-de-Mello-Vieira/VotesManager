@@ -7,7 +7,7 @@ import (
 	postgresqldatamapper "bbb-voting/voting-commons/data-layer/postgresql"
 	redisdatamapper "bbb-voting/voting-commons/data-layer/redis"
 	"bbb-voting/voting-commons/domain"
-	usercases "bbb-voting/voting-commons/user-cases"
+	"bbb-voting/voting-commons/service"
 	"context"
 	"embed"
 	"io/fs"
@@ -37,9 +37,9 @@ func main() {
 	participantRepository := getParticipantRepository(&postgresqlConnector, redisClient)
 	voteRepository := getVotesRepository(&postgresqlConnector, participantRepository, strings.Split(os.Getenv("KAFKA_URI"), ","), redisClient)
 
-	getRoughTotalsUserCase := usercases.NewGetRoughTotalsUserCaseImpl(voteRepository, ctx)
-	getParticipantsUserCase := usercases.NewGetParticipantsUserCaseImpl(participantRepository, ctx)
-	castVoteUserCase := usercases.NewCastVoteUserCaseImpl(voteRepository, participantRepository, ctx)
+	getRoughTotalsUserCase := service.NewGetRoughTotalsUserCaseImpl(voteRepository, ctx)
+	getParticipantsUserCase := service.NewGetParticipantsUserCaseImpl(participantRepository, ctx)
+	castVoteUserCase := service.NewCastVoteUserCaseImpl(voteRepository, participantRepository, ctx)
 
 	frontendController := controller.NewFrontendController(
 		getRoughTotalsUserCase, getParticipantsUserCase, castVoteUserCase,
