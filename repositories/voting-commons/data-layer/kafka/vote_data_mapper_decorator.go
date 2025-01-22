@@ -5,7 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"log"
 
 	"github.com/IBM/sarama"
 )
@@ -13,12 +12,11 @@ import (
 type VoteDataMapperKafkaDecorator struct {
 	brokers                []string
 	topic                  string
-	aggregateSizeInSeconds int
 	base                   domain.VoteRepository
 }
 
-func DecorateVoteDataRepository(base domain.VoteRepository, brokers []string, topic string, aggregateSizeInSeconds int) VoteDataMapperKafkaDecorator {
-	return VoteDataMapperKafkaDecorator{brokers, topic, aggregateSizeInSeconds, base}
+func DecorateVoteDataRepository(base domain.VoteRepository, brokers []string, topic string) VoteDataMapperKafkaDecorator {
+	return VoteDataMapperKafkaDecorator{brokers, topic, base}
 }
 
 func (mapper VoteDataMapperKafkaDecorator) SaveOne(ctx context.Context, vote *domain.Vote) error {
@@ -33,7 +31,6 @@ func (mapper VoteDataMapperKafkaDecorator) SaveOne(ctx context.Context, vote *do
 		return err
 	}
 
-	log.Printf("1 message sent to Kafka topic %s", mapper.topic)
 	return nil
 }
 
@@ -51,7 +48,6 @@ func (mapper VoteDataMapperKafkaDecorator) SaveMany(ctx context.Context, votes [
 		}
 	}
 
-	log.Printf("%d message sent to Kafka topic %s", len(votes), mapper.topic)
 	return nil
 }
 
@@ -72,7 +68,7 @@ func (mapper VoteDataMapperKafkaDecorator) produce(producer sarama.SyncProducer,
 
 	msg := &sarama.ProducerMessage{
 		Topic: mapper.topic,
-		Key:   sarama.StringEncoder(mapper.getPartitionKey(vote)),
+		Key:   nil,
 		Value: sarama.StringEncoder(voteJSON),
 	}
 
@@ -84,17 +80,7 @@ func (mapper VoteDataMapperKafkaDecorator) produce(producer sarama.SyncProducer,
 	return nil
 }
 
-func (mapper VoteDataMapperKafkaDecorator) getPartitionKey(vote *domain.Vote) string {
-	return fmt.Sprintf("%d %s", mapper.TruncateUnix(vote), vote.Participant.Name)
-}
-
-func (mapper VoteDataMapperKafkaDecorator) TruncateUnix(vote *domain.Vote) int64 {
-	result := vote.Timestamp.Unix() / int64(mapper.aggregateSizeInSeconds)
-
-	return result
-}
-
-func (mapper VoteDataMapperKafkaDecorator)  GetGeneralTotal(ctx context.Context) (int, error) {
+func (mapper VoteDataMapperKafkaDecorator) GetGeneralTotal(ctx context.Context) (int, error) {
 	return mapper.base.GetGeneralTotal(ctx)
 }
 func (mapper VoteDataMapperKafkaDecorator) GetTotalByHour(ctx context.Context) ([]domain.TotalByHour, error) {

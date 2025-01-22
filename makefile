@@ -2,8 +2,8 @@ setup:
 	$(MAKE) setup_depedencies
 	sleep 10
 
-	docker exec --workdir /bin/ -it kafka ./kafka-topics --bootstrap-server localhost:9092 --create --topic votes
-	docker exec postgres /bin/psql -h 127.0.0.1 -p 5432 -U postgres -d postgres -f ddl/script.sql
+	docker exec kafka-1 kafka-topics --bootstrap-server localhost:9092 --create --partitions 2  --topic votes 
+	docker exec postgres psql -h 127.0.0.1 -p 5432 -U postgres -d postgres -f ddl/script.sql
 
 	$(MAKE) setup_main
 
@@ -11,7 +11,7 @@ tear_down:
 	docker compose down
 
 setup_depedencies:
-	docker compose up -d postgres kafka redis
+	docker compose up -d postgres kafka-1 kafka-2 redis
 
 setup_main:
 	docker compose up prodution-frontend voters-frontend voters-register --build

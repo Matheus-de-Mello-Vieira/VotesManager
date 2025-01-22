@@ -14,6 +14,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -34,7 +35,7 @@ func main() {
 	redisClient := getRedisClient(os.Getenv("REDIS_URL"))
 
 	participantRepository := getParticipantRepository(&postgresqlConnector, redisClient)
-	voteRepository := getVotesRepository(&postgresqlConnector, participantRepository, []string{os.Getenv("KAFKA_URI")}, redisClient)
+	voteRepository := getVotesRepository(&postgresqlConnector, participantRepository, strings.Split(os.Getenv("KAFKA_URI"), ","), redisClient)
 
 	getRoughTotalsUserCase := usercases.NewGetRoughTotalsUserCaseImpl(voteRepository, ctx)
 	getParticipantsUserCase := usercases.NewGetParticipantsUserCaseImpl(participantRepository, ctx)
@@ -76,7 +77,7 @@ func getVotesRepository(postgresqlConnector *postgresqldatamapper.PostgresqlConn
 	var result domain.VoteRepository
 
 	result = postgresqldatamapper.NewVoteDataMapper(postgresqlConnector)
-	result = kafkadatamapper.DecorateVoteDataRepository(result, brokers, "votes", 30)
+	result = kafkadatamapper.DecorateVoteDataRepository(result, brokers, "votes")
 	result = redisdatamapper.DecorateVoteDataRepository(result, *redisClient, participantRepository)
 
 	return result

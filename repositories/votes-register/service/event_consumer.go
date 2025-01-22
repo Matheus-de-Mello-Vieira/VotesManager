@@ -6,5 +6,5 @@ import (
 )
 
 type VoteConsumer interface {
-	GetVoteChan(ctx *context.Context) (<-chan domain.Vote, error)
+	GetVoteChan(ctx *context.Context) (<-chan []domain.Vote, error)
 }

@@ -10,6 +10,7 @@ import (
 	"net/http"
 
 	"bbb-voting/voters-frontend/docs"
+
 	httpSwagger "github.com/swaggo/http-swagger"
 )
 
@@ -86,5 +87,5 @@ func loadBody(responseWriter http.ResponseWriter, request *http.Request, content
 
 func handleInternalServerError(responseWriter http.ResponseWriter, err error) {
 	http.Error(responseWriter, "Internal Server Error", http.StatusInternalServerError)
-	log.Fatal(err)
+	log.Println(err)
 }

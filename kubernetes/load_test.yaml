@@ -3,6 +3,8 @@ kind: Job
 metadata:
   namespace: default
   name: load-test
+  labels:
+    app: load-test
 spec:
   template:
     metadata:

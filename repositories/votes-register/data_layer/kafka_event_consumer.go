@@ -6,13 +6,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/IBM/sarama"
 )
 
 // ConsumerGroupHandler handles messages from the topic
 type ConsumerGroupHandler struct {
-	events chan<- domain.Vote
+	eventsBatchs chan<- []domain.Vote
+	timeout      time.Duration
+	batchSize    int
 }
 
 // Setup is run before consuming starts
@@ -22,37 +25,101 @@ func (h *ConsumerGroupHandler) Setup(_ sarama.ConsumerGroupSession) error {
 
 // Cleanup is run after consuming ends
 func (h *ConsumerGroupHandler) Cleanup(_ sarama.ConsumerGroupSession) error {
-	close(h.events)
+	close(h.eventsBatchs)
 	return nil
 }
 
 // ConsumeClaim processes messages from the topic
 func (h *ConsumerGroupHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim sarama.ConsumerGroupClaim) error {
-	for message := range claim.Messages() {
-		var vote domain.Vote
-		if err := json.Unmarshal(message.Value, &vote); err != nil {
-			log.Printf("failed to unmarshal message: %v", err)
-			continue
+	var lastMessage *sarama.ConsumerMessage // Keep track of the last message in the batch
+
+	messages := claim.Messages()
+
+	for {
+		messageBatch, ended := h.consumeBatch(messages)
+
+		if ended {
+			return nil
 		}
-		h.events <- vote                 // Send the event to the channel
-		session.MarkMessage(message, "") // Mark message as processed
+
+		if len(messageBatch) > 0 {
+			votes, err := h.unmarshalVoteBatch(messageBatch)
+
+			if err != nil {
+				return err
+			}
+
+			h.eventsBatchs <- votes
+
+			lastMessage = messageBatch[len(messageBatch)-1]
+			session.MarkOffset(claim.Topic(), claim.Partition(), lastMessage.Offset+1, "")
+		}
+
 	}
-	return nil
+}
+
+func (h *ConsumerGroupHandler) consumeBatch(messages <-chan *sarama.ConsumerMessage) ([]*sarama.ConsumerMessage, bool) {
+	var result []*sarama.ConsumerMessage
+	timer := time.NewTimer(h.timeout)
+	defer timer.Stop()
+
+	for i := 0; i < h.batchSize; i++ {
+		select {
+		case vote, ok := <-messages:
+			if !ok {
+				// Channel closed
+				return result, true
+			}
+			result = append(result, vote)
+		case <-timer.C:
+			// Timeout
+			return result, false
+		}
+	}
+	return result, false
+}
+func (h *ConsumerGroupHandler) unmarshalVoteBatch(messages []*sarama.ConsumerMessage) ([]domain.Vote, error) {
+	result := make([]domain.Vote, len(messages))
+
+	for i, message := range messages {
+		element, err := h.unmarshalVote(message)
+
+		if err != nil {
+			return nil, err
+		}
+
+		result[i] = *element
+	}
+
+	return result, nil
+}
+
+func (h *ConsumerGroupHandler) unmarshalVote(message *sarama.ConsumerMessage) (*domain.Vote, error) {
+	var vote domain.Vote
+	if err := json.Unmarshal(message.Value, &vote); err != nil {
+		return nil, err
+	}
+
+	return &vote, nil
 }
 
 type KafkaVoteConsumer struct {
-	brokers []string
-	topic   string
-	groupID string
+	brokers   []string
+	topic     string
+	groupID   string
+	timeout   time.Duration
+	batchSize int
 }
 
-func NewKafkaVoteConsumer(brokers []string, topic string, groupID string) (KafkaVoteConsumer, error) {
-	return KafkaVoteConsumer{brokers, topic, groupID}, nil
+func NewKafkaVoteConsumer(brokers []string, topic string, groupID string, timeout time.Duration, batchSize int) (KafkaVoteConsumer, error) {
+	return KafkaVoteConsumer{brokers, topic, groupID, timeout, batchSize}, nil
 }
 
-func (kc KafkaVoteConsumer) GetVoteChan(ctx *context.Context) (<-chan domain.Vote, error) {
+func (kc KafkaVoteConsumer) GetVoteChan(ctx *context.Context) (<-chan []domain.Vote, error) {
 	config := sarama.NewConfig()
-	config.Consumer.Offsets.Initial = sarama.OffsetNewest // Start from the latest message
+	config.Consumer.Offsets.Initial = sarama.OffsetNewest
+	config.Consumer.Fetch.Max = 10 * 1024 * 1024
+	config.Consumer.MaxProcessingTime = kc.timeout
 
 	// Create a new consumer group
 	consumerGroup, err := sarama.NewConsumerGroup(kc.brokers, kc.groupID, config)
@@ -60,11 +127,11 @@ func (kc KafkaVoteConsumer) GetVoteChan(ctx *context.Context) (<-chan domain.Vot
 		return nil, fmt.Errorf("failed to create consumer group: %w", err)
 	}
 
-	// Create a channel for events
-	events := make(chan domain.Vote)
+	// Create a channel for eventsBatchs
+	eventsBatchs := make(chan []domain.Vote)
 
 	// Create a ConsumerGroupHandler and pass the events channel
-	handler := &ConsumerGroupHandler{events: events}
+	handler := &ConsumerGroupHandler{eventsBatchs: eventsBatchs, timeout: kc.timeout, batchSize: kc.batchSize}
 
 	// Start consuming in a separate goroutine
 	go func() {
@@ -72,7 +139,7 @@ func (kc KafkaVoteConsumer) GetVoteChan(ctx *context.Context) (<-chan domain.Vot
 			if err := consumerGroup.Close(); err != nil {
 				log.Printf("failed to close consumer group: %v", err)
 			}
-			close(events)
+			close(eventsBatchs)
 		}()
 
 		for {
@@ -83,5 +150,5 @@ func (kc KafkaVoteConsumer) GetVoteChan(ctx *context.Context) (<-chan domain.Vot
 		}
 	}()
 
-	return events, nil
+	return eventsBatchs, nil
 }

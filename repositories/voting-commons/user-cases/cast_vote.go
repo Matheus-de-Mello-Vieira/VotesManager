@@ -37,7 +37,11 @@ func (userCase CastVoteUserCaseImpl) Execute(castVoteDto *CastVoteDTO) (*domain.
 
 	vote := domain.Vote{Participant: *participant, Timestamp: time.Now()}
 
-	userCase.voteRepository.SaveOne(userCase.ctx, &vote)
+	err := userCase.voteRepository.SaveOne(userCase.ctx, &vote)
+
+	if err != nil {
+		return nil, err
+	}
 
 	return &vote, nil
 }

@@ -7,10 +7,15 @@ import (
 	"context"
 	"log"
 	"os"
+	"strings"
+	"time"
 )
 
 func main() {
-	voteConsumer, err := kafkaeventconsumer.NewKafkaVoteConsumer([]string{os.Getenv("KAFKA_URI")}, "votes", "events-register")
+	timeout, _ := time.ParseDuration("30s")
+	batchSize := 1000
+
+	voteConsumer, err := kafkaeventconsumer.NewKafkaVoteConsumer(strings.Split(os.Getenv("KAFKA_URI"), ","), "votes", "events-register", timeout, batchSize)
 	if err != nil {
 		log.Fatalf("failed to create Kafka consumer: %v", err)
 	}

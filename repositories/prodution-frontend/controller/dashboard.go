@@ -51,7 +51,7 @@ func (controller *FrontendController) GetPage(responseWriter http.ResponseWriter
 
 func handleInternalServerError(responseWriter http.ResponseWriter, err error) {
 	http.Error(responseWriter, "Internal Server Error", http.StatusInternalServerError)
-	log.Fatal(err)
+	log.Println(err)
 }
 
 // @Summary Get Thorough Totals

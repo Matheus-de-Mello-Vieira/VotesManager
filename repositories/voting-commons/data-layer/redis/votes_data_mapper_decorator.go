@@ -13,8 +13,8 @@ import (
 )
 
 type VoteDataMapperRedisDecorator struct {
-	redis redis.Client
-	base  domain.VoteRepository
+	redis                 redis.Client
+	base                  domain.VoteRepository
 	participantRepository domain.ParticipantRepository
 }
 
@@ -23,16 +23,16 @@ func DecorateVoteDataRepository(base domain.VoteRepository, redis redis.Client, 
 }
 
 func (mapper VoteDataMapperRedisDecorator) SaveOne(ctx context.Context, vote *domain.Vote) error {
-	pipeline := mapper.redis.TxPipeline()
-
-	mapper.saveOneRedis(ctx, vote, pipeline)
-
-	_, err := pipeline.Exec(ctx)
+	err := mapper.base.SaveOne(ctx, vote)
 	if err != nil {
 		return err
 	}
 
-	return mapper.base.SaveOne(ctx, vote)
+	pipeline := mapper.redis.TxPipeline()
+	mapper.saveOneRedis(ctx, vote, pipeline)
+	_, err = pipeline.Exec(ctx)
+
+	return err
 }
 
 func (mapper VoteDataMapperRedisDecorator) SaveMany(ctx context.Context, votes []domain.Vote) error {

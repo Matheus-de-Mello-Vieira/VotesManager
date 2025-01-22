@@ -21,4 +21,4 @@ spec:
             - name: POSTGRESQL_URI
               value: "postgresql://postgres:example@postgres:5432/postgres"
             - name: KAFKA_URI
-              value: "kafka-broker:9092"
+              value: "kafka-broker-1:9092,kafka-broker-2:9093"
