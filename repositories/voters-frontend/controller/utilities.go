@@ -2,6 +2,7 @@ package controller
 
 import (
 	usercases "bbb-voting/voting-commons/user-cases"
+	"bytes"
 	"context"
 	"encoding/json"
 	"io"
@@ -39,7 +40,7 @@ func (frontendController *FrontendController) GetServerMux() http.Handler {
 	mux.HandleFunc("/", frontendController.IndexHandler)
 	mux.HandleFunc("/after-vote", frontendController.LoadRoughTotalPage)
 
-	mux.HandleFunc("/api/votes", frontendController.PostVoteHandler)
+	mux.HandleFunc("/api/votes", captchaMiddleware(frontendController.PostVoteHandler))
 	mux.HandleFunc("/api/participants", frontendController.GetParticipantsHandler)
 	mux.HandleFunc("/api/votes/totals/rough", frontendController.GetVotesRoughTotalsHandler)
 
@@ -47,12 +48,6 @@ func (frontendController *FrontendController) GetServerMux() http.Handler {
 	mux.Handle("/swagger/", httpSwagger.WrapHandler)
 
 	return corsMiddleware(mux)
-}
-
-func configSwagger() {
-	docs.SwaggerInfo.Title = "Voters Frontend"
-	docs.SwaggerInfo.Description = "Frontend for Voters"
-	docs.SwaggerInfo.Schemes = []string{"http", "https"}
 }
 
 func corsMiddleware(next http.Handler) http.Handler {
@@ -73,16 +68,30 @@ func corsMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func loadBody(responseWriter http.ResponseWriter, request *http.Request, contentBody any) {
+func configSwagger() {
+	docs.SwaggerInfo.Title = "Voters Frontend"
+	docs.SwaggerInfo.Description = "Frontend for Voters"
+	docs.SwaggerInfo.Schemes = []string{"http", "https"}
+}
+
+func loadBody(responseWriter http.ResponseWriter, request *http.Request, contentBody any) error {
 	bytesBody, err := io.ReadAll(request.Body)
 	if err != nil {
-		http.Error(responseWriter, "Error when read", http.StatusBadRequest)
+		log.Printf("Error when read the body: %s", err)
+		http.Error(responseWriter, "Error when read the body", http.StatusBadRequest)
+		return err
 	}
+
+	request.Body = io.NopCloser(bytes.NewBuffer(bytesBody))
 
 	err = json.Unmarshal(bytesBody, &contentBody)
 	if err != nil {
-		http.Error(responseWriter, "Error when read", http.StatusMethodNotAllowed)
+		log.Printf("Error when read the body: %s", err)
+		http.Error(responseWriter, "Error when read the body", http.StatusMethodNotAllowed)
+		return err
 	}
+
+	return err
 }
 
 func handleInternalServerError(responseWriter http.ResponseWriter, err error) {

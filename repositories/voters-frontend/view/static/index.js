@@ -21,11 +21,6 @@ async function getParticipants(retries = 3) {
 }
 
 async function onVote(participantId) {
-  if (!checkCaptchaOnSubmit()) {
-    alert("Você precisa fazer o CAPTCHA!");
-    return;
-  }
-
   try {
     const response = await fetch(`/api/votes`, {
       method: "POST",
@@ -34,10 +29,18 @@ async function onVote(participantId) {
       },
       body: JSON.stringify({
         participant_id: participantId,
+        captcha_token: getCaptchaToken(),
       }),
     });
 
     if (!response.ok) {
+      const content = await response.text();
+
+      if (content.trim() == "Invalid Captcha") {
+        alert("Você precisa fazer o CAPTCHA corretamente!");
+        return;
+      }
+
       throw new Error("Falha ao registrar o voto");
     }
   } catch (error) {
@@ -49,7 +52,16 @@ async function onVote(participantId) {
   window.location.replace(`after-vote`);
 }
 
-function checkCaptchaOnSubmit(event) {
+function getCaptchaToken() {
+  const body = {
+    success: checkCaptcha(),
+    error_codes: [],
+  };
+
+  return btoa(JSON.stringify(body));
+}
+
+function checkCaptcha() {
   const captcha = document.getElementById("captcha");
   return captcha.checked;
 }

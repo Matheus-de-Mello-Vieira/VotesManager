@@ -60,7 +60,10 @@ func (controller *FrontendController) PostVoteHandler(responseWriter http.Respon
 	}
 
 	body := usercases.CastVoteDTO{}
-	loadBody(responseWriter, request, &body)
+	err := loadBody(responseWriter, request, &body)
+	if err != nil {
+		return
+	}
 
 	vote, err := controller.castVoteUserCase.Execute(&body)
 	if err != nil {

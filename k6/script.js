@@ -1,5 +1,6 @@
 import { check } from "k6";
 import http from "k6/http";
+import { b64encode } from "k6/encoding";
 
 export const options = {
   scenarios: {
@@ -31,6 +32,15 @@ class Tester {
   constructor(url, participantsPDF) {
     this.url = url;
     this.participantsCDF = this.calcParticipantsCDF(participantsPDF);
+    this.captcha_token = this.getCaptchaToken();
+  }
+  getCaptchaToken() {
+    const body = {
+      success: true,
+      error_codes: [],
+    };
+
+    return b64encode(JSON.stringify(body));
   }
 
   calcParticipantsCDF(participantsPDF) {
@@ -76,6 +86,7 @@ class Tester {
     const participantId = this.selectParticipant();
     const payload = JSON.stringify({
       participant_id: participantId,
+      captcha_token: this.captcha_token,
     });
 
     const headers = { "Content-Type": "application/json" };
