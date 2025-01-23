@@ -10,9 +10,16 @@ make setup
 * **voters-frontend** http://localhost:8080/
 * **prodution-frontend**: http://localhost:8081/votes/
 
-swagger:
+### Swagger:
 * http://localhost:8080/swagger
 * http://localhost:8081/swagger
+
+### Grafana
+* Open your browser and navigate to http://localhost:3000.
+* Default login credentials
+  * Username: `admin`
+  * Password: `admin` (you will be prompted to change it on first login).
+* There will be a dashboard called Metrics with the CPU and RAM usage for each selected container
 
 ### Kubenetes
 

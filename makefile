@@ -1,5 +1,6 @@
 setup:
 	$(MAKE) setup_depedencies
+	$(MAKE) setup_monitoring
 	sleep 10
 
 	docker exec kafka-1 kafka-topics --bootstrap-server kafka-1:9092 --create --partitions 2  --topic votes 
@@ -11,10 +12,13 @@ tear_down:
 	docker compose down
 
 setup_depedencies:
-	docker compose up -d postgres kafka-1 kafka-2 redis
+	docker compose up -d postgres kafka-1 kafka-2 redis grafana cadvisor prometheus
 
 setup_main:
 	docker compose up prodution-frontend voters-frontend voters-register --build
+
+setup_monitoring:
+	docker compose up -d grafana cadvisor prometheus
 
 unit_test:
 	( cd repositories ; go test ./... )
