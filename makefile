@@ -3,7 +3,7 @@ setup:
 	$(MAKE) setup_monitoring
 	sleep 10
 
-	docker exec kafka-1 kafka-topics --bootstrap-server kafka-1:9092 --create --partitions 2  --topic votes 
+	docker exec kafka-1 kafka-topics --bootstrap-server localhost:39092 --create --partitions 2  --topic votes 
 	docker exec postgres psql -h 127.0.0.1 -p 5432 -U postgres -d postgres -f ddl/script.sql
 
 	$(MAKE) setup_main
