@@ -105,22 +105,28 @@ services:
       - "6379:6379"
 
   k6:
-    build: k6/.
+    image: grafana/k6:0.56.0
+    container_name: k6
     environment:
-      URL: "http://voters-frontend:8080"
-  
+      - URL=http://voters-frontend:8080
+    volumes:
+      - ./k6:/scripts
+    command: ["run", "/scripts/test.js"]
+    depends_on:
+      - prometheus
+
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v3.1.0
     container_name: prometheus
     ports:
       - "9090:9090"
     volumes:
       - ./monitoring-provisioning/prometheus.yml:/etc/prometheus/prometheus.yml
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
+      - "--config.file=/etc/prometheus/prometheus.yml"
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:11.5.1
     container_name: grafana
     ports:
       - "3000:3000"
@@ -133,7 +139,7 @@ services:
       - loki
 
   cadvisor:
-    image: gcr.io/cadvisor/cadvisor:latest
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
     container_name: cadvisor
     ports:
       - "8082:8080"
