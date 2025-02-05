@@ -130,6 +130,7 @@ services:
       - ./monitoring-provisioning/dashboards:/var/lib/grafana/dashboards
     depends_on:
       - prometheus
+      - loki
 
   cadvisor:
     image: gcr.io/cadvisor/cadvisor:latest
@@ -142,3 +143,25 @@ services:
       - /var/lib/docker/:/var/lib/docker:ro
     depends_on:
       - prometheus
+
+  loki:
+    image: grafana/loki:3.3.0
+    container_name: loki
+    ports:
+      - "3100:3100"
+    user: "root"
+    volumes:
+      - ./monitoring-provisioning/loki-config.yml:/etc/loki/loki-config.yml
+    command: -config.file=/etc/loki/loki-config.yml
+
+  promtail:
+    image: grafana/promtail:3.3.2
+    container_name: promtail
+    volumes:
+      - /var/log:/var/log
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./monitoring-provisioning/promtail-config.yml:/etc/promtail/promtail-config.yml
+    command: -config.file=/etc/promtail/promtail-config.yml
+    depends_on:
+      - loki

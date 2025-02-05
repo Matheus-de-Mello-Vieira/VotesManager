@@ -18,7 +18,7 @@ setup_main:
 	docker compose up prodution-frontend voters-frontend voters-register --build
 
 setup_monitoring:
-	docker compose up -d grafana cadvisor prometheus
+	docker compose up -d grafana cadvisor prometheus promtail
 
 unit_test:
 	( cd repositories ; go test ./... )
